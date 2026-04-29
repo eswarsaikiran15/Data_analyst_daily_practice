@@ -122,87 +122,127 @@ Even if you don’t use NumPy directly, you are always using it indirectly.
 
 ## What You Actually Need to Learn (Data Analyst Focus)
 
-1. Array Creation
+# NumPy Essentials for Data Analysts
+
+## Overview
+
+This guide covers the **core NumPy concepts** required for data analysis. Focus on these topics to build a strong foundation for working with data efficiently.
+
+---
+
+## 1. Array Creation
 
 Create structured data (instead of Python lists)
 
+```python
 import numpy as np
 
 a = np.array([1, 2, 3])
 b = np.zeros((2, 3))
 c = np.arange(0, 10, 2)
+```
 
-Use:
+### Use:
 
-Convert raw data into analyzable format
-Initialize datasets
-2. Indexing & Slicing
+* Convert raw data into analyzable format
+* Initialize datasets
+
+---
+
+## 2. Indexing & Slicing
 
 Access specific data
 
+```python
 a = np.array([10, 20, 30, 40])
 
 print(a[1])      # 20
 print(a[1:3])    # [20 30]
+```
 
-Use:
+### Use:
 
-Get specific rows/columns
-Extract subsets of data
-3. Filtering (Conditions)
+* Get specific rows/columns
+* Extract subsets of data
+
+---
+
+## 3. Filtering (Conditions)
 
 Select data based on rules
 
+```python
 a = np.array([10, 25, 30, 15])
 
 print(a[a > 20])   # [25 30]
+```
 
-Use:
+### Use:
 
-Customers with high revenue
-Filter invalid data
-4. Basic Functions
+* Customers with high revenue
+* Filter invalid or unwanted data
 
-Quick statistics
+---
 
+## 4. Basic Functions
+
+Quick statistical operations
+
+```python
 a = np.array([10, 20, 30])
 
 np.mean(a)   # average
 np.sum(a)    # total
-np.std(a)    # spread
+np.std(a)    # standard deviation
+```
 
-Use:
+### Use:
 
-KPIs (average sales, total profit)
-5. Shape & Reshape
+* KPIs (average sales, total profit)
+* Basic data insights
+
+---
+
+## 5. Shape & Reshape
 
 Control data structure
 
-a = np.array([1,2,3,4,5,6])
+```python
+a = np.array([1, 2, 3, 4, 5, 6])
 
 print(a.shape)        # (6,)
-print(a.reshape(2,3))
+print(a.reshape(2, 3))
+```
 
-Use:
+### Use:
 
-Convert data into rows/columns
-Prepare data for ML or reports
-6. ravel() vs flatten()
-a = np.array([[1,2,3],[4,5,6]])
+* Convert data into rows/columns
+* Prepare data for ML models or reports
+
+---
+
+## 6. ravel() vs flatten()
+
+```python
+a = np.array([[1, 2, 3], [4, 5, 6]])
 
 r = a.ravel()
 f = a.flatten()
-Difference:
-Feature	ravel()	flatten()
-Memory	View (same data)	Copy (new data)
-Speed	Faster	Slower
-Modify original?	Yes	No
+```
 
-Use:
+### Difference:
 
-ravel() → performance
-flatten() → safe copy
-Avoid deep math unless going into ML/AI.
+| Feature          | ravel()          | flatten()       |
+| ---------------- | ---------------- | --------------- |
+| Memory           | View (same data) | Copy (new data) |
+| Speed            | Faster           | Slower          |
+| Modify original? | Yes              | No              |
+
+### Use:
+
+* `ravel()` → when performance matters
+* `flatten()` → when you need a safe copy
+
 
 ---
 
