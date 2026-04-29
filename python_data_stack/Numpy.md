@@ -1301,4 +1301,4 @@ np.linalg.norm(diff, axis=-1)
 
 ---
 
-*Last updated: 2025 · Covers NumPy 1.20+*
+*Last updated: April 29,2026 · Covers NumPy 1.20+*
