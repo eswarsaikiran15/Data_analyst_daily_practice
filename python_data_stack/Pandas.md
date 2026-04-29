@@ -1125,4 +1125,6 @@ vectorize first, apply() only when needed
 
 ---
 **last updated on april 29,2026 ** 
+
+**Made with ❤️ for data scientists and ML engineers**
 > Practice these on real datasets: [Titanic](https://www.kaggle.com/c/titanic), [Iris](https://archive.ics.uci.edu/ml/datasets/iris), [Housing Prices](https://www.kaggle.com/c/house-prices-advanced-regression-techniques)
