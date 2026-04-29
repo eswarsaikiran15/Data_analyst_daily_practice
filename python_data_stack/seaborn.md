@@ -1298,6 +1298,8 @@ EDA order:
 
 ---
 
-> 📌 **last updated on april29,2026 **  
+> 📌 **last updated on april29,2026 **
+>
+> **Made with ❤️ for data scientists and ML engineers**
 > Practice datasets: `sns.load_dataset('tips')` · `sns.load_dataset('iris')` · `sns.load_dataset('penguins')` · `sns.load_dataset('titanic')`  
 > Seaborn Docs: [seaborn.pydata.org](https://seaborn.pydata.org)
