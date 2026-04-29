@@ -1,10 +1,6 @@
 # 🔢 NumPy Master Notes
 > **Complete Reference for Data Analysis & Basic ML** — Concept + Code + Recall
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)
-![NumPy](https://img.shields.io/badge/NumPy-1.20+-013243?style=flat-square&logo=numpy)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-
 ---
 
 ## 📚 Table of Contents
