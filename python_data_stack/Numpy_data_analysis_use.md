@@ -122,13 +122,86 @@ Even if you don’t use NumPy directly, you are always using it indirectly.
 
 ## What You Actually Need to Learn (Data Analyst Focus)
 
-* Array creation
-* Indexing & slicing
-* Filtering conditions
-* Basic functions (`mean`, `sum`, `std`)
-* Shape & reshape
-* `ravel()` vs `flatten()`
+1. Array Creation
 
+Create structured data (instead of Python lists)
+
+import numpy as np
+
+a = np.array([1, 2, 3])
+b = np.zeros((2, 3))
+c = np.arange(0, 10, 2)
+
+Use:
+
+Convert raw data into analyzable format
+Initialize datasets
+2. Indexing & Slicing
+
+Access specific data
+
+a = np.array([10, 20, 30, 40])
+
+print(a[1])      # 20
+print(a[1:3])    # [20 30]
+
+Use:
+
+Get specific rows/columns
+Extract subsets of data
+3. Filtering (Conditions)
+
+Select data based on rules
+
+a = np.array([10, 25, 30, 15])
+
+print(a[a > 20])   # [25 30]
+
+Use:
+
+Customers with high revenue
+Filter invalid data
+4. Basic Functions
+
+Quick statistics
+
+a = np.array([10, 20, 30])
+
+np.mean(a)   # average
+np.sum(a)    # total
+np.std(a)    # spread
+
+Use:
+
+KPIs (average sales, total profit)
+5. Shape & Reshape
+
+Control data structure
+
+a = np.array([1,2,3,4,5,6])
+
+print(a.shape)        # (6,)
+print(a.reshape(2,3))
+
+Use:
+
+Convert data into rows/columns
+Prepare data for ML or reports
+6. ravel() vs flatten()
+a = np.array([[1,2,3],[4,5,6]])
+
+r = a.ravel()
+f = a.flatten()
+Difference:
+Feature	ravel()	flatten()
+Memory	View (same data)	Copy (new data)
+Speed	Faster	Slower
+Modify original?	Yes	No
+
+Use:
+
+ravel() → performance
+flatten() → safe copy
 Avoid deep math unless going into ML/AI.
 
 ---
