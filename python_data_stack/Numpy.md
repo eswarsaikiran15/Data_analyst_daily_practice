@@ -1302,3 +1302,4 @@ np.linalg.norm(diff, axis=-1)
 ---
 
 *Last updated: April 29,2026 · Covers NumPy 1.20+*
+**Made with ❤️ for data scientists and ML engineers**
