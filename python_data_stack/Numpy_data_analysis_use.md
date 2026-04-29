@@ -155,4 +155,3 @@ It is the **foundation** of data analysis, even if it’s not always visible.
 
 ---
 
-If you want, I can convert this into a **GitHub-ready project README with examples + mini project** (that actually impresses recruiters).
