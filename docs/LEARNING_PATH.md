@@ -1,111 +1,136 @@
-# 📚 Data Analyst Learning Path
+# 📊 Data Analyst Portfolio – Daily Practice
 
-This document outlines the structured learning journey from beginner to intermediate data analyst.
-
-## 🎯 Learning Progression
-
-### Phase 1: Foundations (NumPy & Basics)
-**Duration:** 1-2 weeks
-**Topics:** NumPy arrays, mathematical operations, data structures
-- ✅ NumPy fundamentals
-- ✅ Array operations and indexing
-- ✅ Mathematical and statistical functions
-- ✅ Real-world applications
-
-**Files:**
-- `01_foundations/01_numpy_basics.ipynb`
-- `01_foundations/02_numpy_data_analysis_use.ipynb`
+A structured, hands-on journey toward becoming a **job-ready Data Analyst**, focused on real-world problem solving, data storytelling, and consistent execution.
 
 ---
 
-### Phase 2: Data Manipulation (Pandas)
-**Duration:** 2-3 weeks
-**Topics:** DataFrames, data cleaning, transformation, grouping
-- ⏳ Pandas fundamentals
-- ⏳ Reading and writing data
-- ⏳ Data cleaning and preprocessing
-- ⏳ GroupBy and aggregation
-- ⏳ Merging and joining
+## 🚀 Profile Summary
 
-**Files:**
-- `02_data_manipulation/01_pandas_basics.ipynb`
-- `02_data_manipulation/02_pandas_data_analysis_use.ipynb`
+Aspiring Data Analyst with practical experience in:
+
+* Data cleaning and transformation
+* Exploratory data analysis (EDA)
+* Data visualization and insight generation
+* Structured learning across analytics tools
+
+Actively building projects and solving datasets daily to strengthen analytical thinking and business understanding.
 
 ---
 
-### Phase 3: Data Visualization
-**Duration:** 1-2 weeks
-**Topics:** Matplotlib, Seaborn, visualization best practices
-- ⏳ Matplotlib fundamentals
-- ⏳ Statistical visualizations with Seaborn
-- ⏳ Creating publication-quality figures
-- ⏳ Interactive dashboards (intro)
+## 🧭 Learning Roadmap & Status
 
-**Files:**
-- `03_visualization/01_matplotlib_basics.ipynb`
-- `03_visualization/02_seaborn_plots.ipynb`
-
----
-
-### Phase 4: Real-World Projects
-**Duration:** Ongoing
-**Topics:** Applied data analysis, problem-solving, storytelling with data
-- ⏳ Project 1: Sales Data Analysis
-- ⏳ Project 2: Customer Segmentation
-- ⏳ Project 3: Time Series Analysis
-- ⏳ Project 4: Data Cleaning Pipeline
-
-**Files:**
-- `04_projects/project_01_sales_analysis/`
-- `04_projects/project_02_customer_segmentation/`
-- And more...
+| Phase   | Domain                               | Status         |
+| ------- | ------------------------------------ | -------------- |
+| Phase 1 | NumPy (Foundations)                  | ✅ Completed    |
+| Phase 2 | Pandas (Data Manipulation)           | ✅ Completed    |
+| Phase 3 | Matplotlib & Seaborn (Visualization) | ✅ Completed    |
+| Phase 4 | SQL                                  | 🔄 In Progress |
+| Phase 5 | Excel                                | ⏭️ Planned     |
+| Phase 6 | Power BI                             | ⏭️ Planned     |
+| Phase 7 | Projects                             | 🔄 Ongoing     |
 
 ---
 
-## 🎓 How to Use This Repository
+## 🛠️ Technical Skills
 
-1. **Start with Phase 1** - Ensure you have Python, Jupyter, and required libraries installed
-2. **Follow in order** - Each phase builds on previous knowledge
-3. **Practice actively** - Complete exercises and try variations
-4. **Build projects** - Apply learning to real-world datasets
-5. **Review and refine** - Revisit earlier sections as needed
+**Languages & Libraries**
 
-## 📋 Prerequisites
+* Python (NumPy, Pandas)
 
-- Python 3.8+
-- Jupyter Notebook
-- Basic programming knowledge
-- Terminal/Command prompt familiarity
+**Data Visualization**
 
-## 🚀 Getting Started
+* Matplotlib
+* Seaborn
+
+**Databases**
+
+* SQL (learning advanced queries)
+
+**Upcoming Tools**
+
+* Excel (Data Analysis)
+* Power BI (Dashboarding & Reporting)
+
+---
+
+## 📂 Repository Structure
 
 ```bash
-# Clone the repository
+01_foundations/              # NumPy fundamentals  
+02_data_manipulation/        # Pandas workflows  
+03_visualization/            # Data visualization techniques  
+04_sql/                      # SQL practice (in progress)  
+05_excel/                    # Excel (upcoming)  
+06_powerbi/                  # Power BI (upcoming)  
+04_projects/                 # Real-world case studies  
+```
+
+---
+
+## 📈 Project Focus
+
+This repository will include end-to-end data analysis projects such as:
+
+* Sales performance analysis
+* Customer segmentation
+* Time series trend analysis
+* Data cleaning pipelines
+
+Each project emphasizes:
+
+* Problem definition
+* Data preprocessing
+* Analysis & visualization
+* Business insights
+
+---
+
+## 📅 Daily Practice Approach
+
+* Solve datasets consistently
+* Build notebooks with clear analysis steps
+* Experiment with multiple approaches
+* Document learnings and insights
+
+This repository reflects **continuous improvement and discipline**.
+
+---
+
+## 🎯 Career Objective
+
+To secure a **Data Analyst role** by demonstrating:
+
+* Strong analytical thinking
+* Hands-on technical skills
+* Ability to derive actionable insights from data
+
+---
+
+## ⚙️ Setup Instructions
+
+```bash
 git clone https://github.com/eswarsaikiran15/Data_analyst_daily_practice.git
-
-# Navigate to the directory
 cd Data_analyst_daily_practice
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Start Jupyter
 jupyter notebook
 ```
 
-## 💡 Tips for Success
+---
 
-✅ Code along with the notebooks (don't just read)  
-✅ Experiment with different approaches  
-✅ Take notes on key concepts  
-✅ Try to solve problems before looking at solutions  
-✅ Build your own mini-projects  
-✅ Share your learning journey  
+## 📌 Current Focus
 
-## 📚 Additional Resources
-
-See `docs/RESOURCES.md` for external learning materials and datasets.
+* Strengthening SQL (Joins, Aggregations, Subqueries)
+* Applying SQL to real datasets
+* Preparing for project-based analysis
 
 ---
 
-**Happy Learning! 🎉**
+## 🔗 Future Goals
+
+* Build portfolio-level projects
+* Create interactive dashboards
+* Develop strong business case analysis skills
+
+---
+
+**Consistent effort. Practical learning. Real-world focus.**
