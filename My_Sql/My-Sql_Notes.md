@@ -39,6 +39,17 @@
 29. [User Management & Security](#29-user-management--security)
 30. [Data Analysis Patterns](#30-data-analysis-patterns)
 31. [Quick Reference Cheatsheet](#31-quick-reference-cheatsheet)
+32. [Storage Engines — InnoDB vs MyISAM](#32-storage-engines--innodb-vs-myisam)
+33. [UNION & Set Operations](#33-union--set-operations)
+34. [JSON in MySQL](#34-json-in-mysql)
+35. [Events & Scheduled Tasks](#35-events--scheduled-tasks)
+36. [Error Handling in Procedures](#36-error-handling-in-procedures)
+37. [Cursors](#37-cursors)
+38. [Partitioning](#38-partitioning)
+39. [Replication Concepts](#39-replication-concepts)
+40. [Backup & Recovery](#40-backup--recovery)
+41. [MySQL System Variables & Configuration](#41-mysql-system-variables--configuration)
+42. [Common Interview Query Challenges](#42-common-interview-query-challenges)
 
 ---
 
@@ -1442,6 +1453,20 @@ FROM employees;
 - **Simple CASE** = `CASE col WHEN val THEN` — simpler
 - `ELSE` is optional — returns NULL if no match and no ELSE
 
+### 🎯 Interview Q&A
+
+> **Q: What is a CASE expression and where can you use it in SQL?**  
+> **A:** `CASE` is SQL's conditional expression — it evaluates conditions and returns a value based on the first matching `WHEN` clause. Unlike most languages, it's an **expression** (returns a value), not a statement (executes logic). This means you can use it anywhere a value is valid: inside `SELECT` (to create computed columns), `ORDER BY` (custom sort logic), `GROUP BY` (custom buckets), `WHERE` (conditional filtering), and inside aggregate functions like `SUM(CASE WHEN ... END)` for conditional aggregation.
+
+> **Q: What is conditional aggregation and how does it work?**  
+> **A:** Conditional aggregation combines `CASE` inside an aggregate function to compute multiple different aggregates in a single query pass — essentially pivoting rows into columns. `SUM(CASE WHEN dept_id = 1 THEN salary ELSE 0 END)` sums salary only for dept 1, outputting 0 for all others. `COUNT(CASE WHEN gender = 'F' THEN 1 END)` counts only female employees (ELSE is omitted, so non-matches contribute NULL which COUNT ignores). This technique avoids multiple subqueries or JOINs and is very efficient.
+
+> **Q: What is the difference between Simple CASE and Searched CASE?**  
+> **A:** **Simple CASE** (`CASE col WHEN val THEN ...`) compares one expression against a list of values — like a switch statement. It only supports equality checks. **Searched CASE** (`CASE WHEN condition THEN ...`) evaluates arbitrary boolean conditions per branch — like if/else-if. Searched CASE is more powerful: it can use `>`, `<`, `BETWEEN`, `IS NULL`, `LIKE`, or any Boolean expression. Use Simple CASE for straightforward value mapping; Searched CASE for range checks or complex conditions.
+
+> **Q: What does CASE return if no WHEN condition matches and there is no ELSE?**  
+> **A:** It returns **NULL**. If no WHEN matches and no ELSE clause is provided, the CASE expression silently returns NULL. This can cause subtle bugs — for example, using CASE inside SUM where some rows have no matching WHEN will contribute NULL (which SUM treats as 0 via ignore-NULL behavior) rather than an error. Always include `ELSE` with an explicit fallback value to make your intent clear and avoid unexpected NULLs.
+
 ---
 
 ## 18. CTEs — Common Table Expressions
@@ -1536,6 +1561,17 @@ FROM daily;
 - **Recursive CTE** needs: anchor query + `UNION ALL` + recursive query
 - CTEs exist **only for the duration** of the query
 
+### 🎯 Interview Q&A
+
+> **Q: What is a CTE and how is it different from a subquery?**  
+> **A:** A **CTE (Common Table Expression)** is a named, temporary result set defined with `WITH` at the top of a query. It differs from a subquery in several ways: (1) **Readability** — CTEs are defined once at the top and referenced by name, making complex queries far more readable than deeply nested subqueries; (2) **Reusability** — a CTE can be referenced multiple times in the same query, whereas a subquery must be repeated each time; (3) **Recursion** — CTEs support `WITH RECURSIVE` for hierarchical/tree traversal, which subqueries cannot do; (4) **Scope** — a CTE exists only for the duration of the single query it's defined in, unlike a view which is persistent.
+
+> **Q: When would you use a CTE over a temporary table?**  
+> **A:** Use a **CTE** for complex queries within a single statement — they're scoped to the query, require no DDL or cleanup, and are evaluated inline. Use a **temporary table** (`CREATE TEMPORARY TABLE`) when: (1) you need to reference the result set multiple times across multiple queries; (2) you need to add an index to the intermediate result for performance; (3) the intermediate result set is very large and would benefit from being materialized to disk; or (4) you need to populate it via multiple separate INSERT statements. CTEs are cleaner; temp tables are more powerful for multi-step workflows.
+
+> **Q: How does a Recursive CTE work? What are the two parts?**  
+> **A:** A recursive CTE has two mandatory parts connected by `UNION ALL`: (1) **The anchor query** — a non-recursive SELECT that provides the starting rows (base case); (2) **The recursive query** — a SELECT that JOINs the CTE to itself, adding one more level per iteration. MySQL executes it by: running the anchor, storing results, running the recursive query using those results, storing new results, repeating until no new rows are produced. A `max_recursion_depth` limit (default 1000) prevents infinite loops. Classic use cases: org charts, category trees, bill of materials, path finding.
+
 ---
 
 ## 19. Views
@@ -1598,6 +1634,17 @@ UPDATE v_active_employees SET salary = 80000 WHERE emp_id = 5;
 - No data stored — query runs every time view is accessed
 - Can SELECT, and sometimes UPDATE/INSERT through views
 - Use for: **security** (hide columns), **simplicity** (hide complexity)
+
+### 🎯 Interview Q&A
+
+> **Q: What is a View and what are its advantages?**  
+> **A:** A **View** is a stored SQL query that behaves like a virtual table. The query definition is saved but **no data is stored** — every time you query the view, the underlying SQL runs. Advantages: (1) **Abstraction** — hide join complexity behind a simple table interface; (2) **Security** — restrict access to specific columns/rows (e.g., hide salary column from analysts); (3) **Reusability** — define a complex business query once, reuse across many reports; (4) **Consistency** — all consumers use the same definition, ensuring consistent logic. Disadvantage: no performance gain — the underlying query runs every time.
+
+> **Q: What is the difference between a View and a Materialized View?**  
+> **A:** A regular **View** is virtual — it executes the underlying query every time it's accessed. No data is stored; it's purely a saved query definition. A **Materialized View** (not natively supported in MySQL but common in PostgreSQL and Oracle) physically stores the query result as a table snapshot. Reads from a materialized view are instant (no query execution), but the data can become stale and needs periodic refreshing. In MySQL, you simulate materialized views using summary tables populated by events or triggers.
+
+> **Q: When can you UPDATE data through a View?**  
+> **A:** A view is **updatable** only when it meets strict criteria: it must reference exactly one table, contain no `DISTINCT`, no aggregate functions, no `GROUP BY`, no `HAVING`, no `UNION`, and no subqueries in the SELECT. Simple single-table views with column filters are updatable. Complex views joining multiple tables or using aggregates are **not updatable** — MySQL will throw an error. The `WITH CHECK OPTION` clause ensures that UPDATE/INSERT through a view only affect rows that satisfy the view's WHERE clause.
 
 ---
 
@@ -1665,6 +1712,20 @@ CREATE INDEX idx_dept_hire ON employees(dept_id, hire_date);
 - `EXPLAIN` shows whether your query uses an index
 - `type: ALL` in EXPLAIN = **full table scan** = add an index!
 - **Don't over-index** — every index costs on writes
+
+### 🎯 Interview Q&A
+
+> **Q: What is an index and how does it work internally?**  
+> **A:** An **index** is a separate data structure (B-Tree by default in MySQL/InnoDB) that maintains a sorted copy of one or more column values along with pointers to the corresponding rows. When a query has `WHERE last_name = 'Smith'`, instead of scanning every row (O(n)), MySQL traverses the B-Tree in O(log n) time to find the matching entries, then follows the row pointers. The trade-off: indexes consume disk space and must be updated on every INSERT/UPDATE/DELETE, slowing write operations. A table with too many indexes can have slower writes than no-index reads.
+
+> **Q: What is the difference between a clustered index and a non-clustered index?**  
+> **A:** In InnoDB, the **clustered index** (also called the primary index) determines the **physical order of rows on disk** — the actual table data IS the clustered index B-Tree. There is exactly one clustered index per table, and it's always the primary key (or a hidden generated key if no PK is defined). A **non-clustered index** (secondary index) stores the indexed columns plus the primary key value as a pointer. Looking up a row via a secondary index requires two lookups: find the PK in the secondary index, then look up the actual row in the clustered index (a "bookmark lookup"). MyISAM tables only have non-clustered indexes.
+
+> **Q: What is a covering index?**  
+> **A:** A **covering index** is an index that contains all the columns needed to satisfy a query — so MySQL can answer the query entirely from the index without reading the actual table rows. Example: `CREATE INDEX idx_name_salary ON employees(dept_id, salary)` covers `SELECT salary FROM employees WHERE dept_id = 2` — both the filter column and the returned column are in the index. EXPLAIN shows `"Using index"` in the Extra column when a covering index is used. This is a significant optimization since reading from the index (smaller, sorted) is much faster than reading from the table.
+
+> **Q: What is the leftmost prefix rule for composite indexes?**  
+> **A:** For a composite index `(a, b, c)`, MySQL can use the index for queries that filter on `a`, `a AND b`, or `a AND b AND c` — always starting from the leftmost column. It **cannot** use the index for queries on `b` alone, `c` alone, or `b AND c` (skipping `a`). This is because the B-Tree is sorted first by `a`, then by `b` within each `a` value, etc. The order of columns in a composite index matters enormously — put the most selective column (or the equality-filter column) first, range-filter columns last.
 
 ---
 
@@ -1777,6 +1838,17 @@ SHOW PROCEDURE STATUS WHERE Db = 'sales_db';
 - `SET @var` = session variable (outside proc)
 - `DELIMITER //` = needed so `;` inside proc doesn't end it prematurely
 
+### 🎯 Interview Q&A
+
+> **Q: What is a Stored Procedure and what are its advantages?**  
+> **A:** A **Stored Procedure** is a named, pre-compiled block of SQL (and procedural logic) stored on the server. Advantages: (1) **Performance** — compiled and cached on first execution, reducing parse/compile overhead on subsequent calls; (2) **Reduced network traffic** — instead of sending multiple SQL statements from the application, one `CALL` executes all the logic server-side; (3) **Code reuse** — business logic is defined once in the database and shared across all applications; (4) **Security** — users can be granted `EXECUTE` permission without direct table access. Disadvantages: harder to version-control, debug, and test than application code.
+
+> **Q: What is the difference between IN, OUT, and INOUT parameters?**  
+> **A:** `IN` (default) is an **input-only** parameter — the caller passes a value that the procedure can read but changes inside the procedure don't affect the caller's variable. `OUT` is an **output-only** parameter — the procedure writes a result into it which the caller reads after execution; the procedure cannot read its initial value. `INOUT` is both — the caller passes a value the procedure can read and modify, and the modified value is returned to the caller. Example: a procedure that takes a salary `INOUT`, applies a raise percentage, and sets the result back.
+
+> **Q: What is the difference between a Stored Procedure and a User-Defined Function?**  
+> **A:** The key difference is **return behavior and usage context**. A **Function** returns exactly one value and can be used inside SQL expressions (`SELECT`, `WHERE`, `ORDER BY`). A **Stored Procedure** doesn't return a value directly — it can have `OUT` parameters and/or return result sets, and is called with `CALL`. Functions must be `DETERMINISTIC` or declare side-effect behavior; procedures are more flexible. You cannot call a procedure inside a `SELECT`, but you can call a function there.
+
 ---
 
 ## 22. Functions (User-Defined)
@@ -1837,6 +1909,14 @@ DROP FUNCTION IF EXISTS GetSalaryGrade;
 - Use inside `SELECT`, `WHERE`, `ORDER BY` etc.
 - `DETERMINISTIC` = same input always gives same output
 - Procedure → no return value, called with `CALL`
+
+### 🎯 Interview Q&A
+
+> **Q: What does DETERMINISTIC mean in a MySQL function?**  
+> **A:** `DETERMINISTIC` declares that the function **always returns the same result for the same input values** — like a pure mathematical function. This matters for two reasons: (1) MySQL can **cache** the result for repeated calls with the same arguments in the same query; (2) it is required for functions used in generated columns or indexes. If a function reads from the database, uses `NOW()`, `RAND()`, or has side effects, it is `NOT DETERMINISTIC`. Declaring a function DETERMINISTIC incorrectly can cause subtle bugs with replication or cached results.
+
+> **Q: When would you create a User-Defined Function instead of writing the logic inline in queries?**  
+> **A:** Create a UDF when: (1) the same computation is repeated across many queries — centralizing logic avoids copy-paste errors; (2) the calculation is complex enough that inlining it makes queries unreadable (e.g., a multi-step salary banding calculation); (3) you want to enforce consistent business rules at the database level regardless of which application calls it. Avoid UDFs when: performance is critical (calling a function per-row is slower than set-based SQL), or when the logic is simple enough to write inline clearly.
 
 ---
 
@@ -1920,6 +2000,17 @@ DROP TRIGGER IF EXISTS after_salary_update;
 - `AFTER` triggers **cannot** modify the row — only side effects
 - Use `SIGNAL SQLSTATE '45000'` to raise an error
 
+### 🎯 Interview Q&A
+
+> **Q: What is a Trigger and what are its common use cases?**  
+> **A:** A **Trigger** is a stored program that automatically fires in response to a DML event (`INSERT`, `UPDATE`, or `DELETE`) on a table — either `BEFORE` or `AFTER` the operation. Common use cases: (1) **Audit logging** — recording what changed, when, and by whom into an audit table; (2) **Enforcing complex constraints** — business rules too complex for a CHECK constraint (e.g., "salary can't be lowered by more than 10%"); (3) **Maintaining derived data** — auto-updating a running total or denormalized count; (4) **Archiving** — copying rows to an archive table before deletion.
+
+> **Q: What is the difference between BEFORE and AFTER triggers?**  
+> **A:** A **BEFORE trigger** fires before the DML operation executes. It can: read and modify the `NEW` values (changing what gets inserted/updated), or raise an error with `SIGNAL` to cancel the operation entirely. An **AFTER trigger** fires after the operation has completed and the row is committed to the table. It can only perform side effects (insert into another table, update another row) — it cannot modify the row that was just changed nor cancel the original operation. Use BEFORE for validation/transformation; use AFTER for logging/cascading.
+
+> **Q: What are the dangers/downsides of Triggers?**  
+> **A:** Triggers have several pitfalls: (1) **Hidden logic** — they execute invisibly; developers not aware of triggers can't understand why a simple INSERT causes extra changes; (2) **Performance** — every trigger fires on every qualifying DML, adding overhead; complex triggers on high-volume tables can seriously hurt performance; (3) **Cascading triggers** — a trigger that fires DML can activate other triggers, making debugging nightmarish; (4) **Replication** — triggers don't always replicate predictably in all replication configurations; (5) **Testing difficulty** — triggers are hard to unit test in isolation.
+
 ---
 
 ## 24. Transactions & ACID
@@ -2001,6 +2092,20 @@ SAVEPOINT = checkpoint within a transaction
 MySQL default = REPEATABLE READ isolation
 ```
 
+### 🎯 Interview Q&A
+
+> **Q: Explain ACID properties with a real-world example.**  
+> **A:** ACID describes guarantees that a reliable transaction system must provide. Using a bank transfer ($500 from Account A to Account B) as an example: **Atomicity** — both the debit and credit happen together, or neither does (no partial transfer where money disappears); **Consistency** — the total money in the system stays the same before and after (rules/constraints are never violated); **Isolation** — if two transfers happen simultaneously, each sees a consistent snapshot (another transaction's partial changes aren't visible mid-flight); **Durability** — once committed, the transfer is permanent even if the server crashes immediately after.
+
+> **Q: What is the difference between the four transaction isolation levels?**  
+> **A:** The four levels trade consistency for concurrency (higher isolation = fewer anomalies but more locking/blocking): **READ UNCOMMITTED** — can read dirty data (uncommitted changes from other transactions) — almost never used. **READ COMMITTED** — only reads committed data, but the same SELECT in the same transaction can return different rows if another transaction commits between reads (non-repeatable reads). **REPEATABLE READ** (MySQL default) — same SELECT always returns the same rows within a transaction, but phantom rows can appear from INSERTs by others. **SERIALIZABLE** — fully isolated, transactions execute as if sequential; prevents all anomalies but is the slowest.
+
+> **Q: What is a deadlock and how does MySQL handle it?**  
+> **A:** A **deadlock** occurs when two (or more) transactions each hold a lock that the other needs — they wait for each other indefinitely. Example: Transaction A locks row 1 and waits for row 2; Transaction B locks row 2 and waits for row 1 — circular wait. MySQL automatically detects deadlocks using a wait-for graph and **kills the transaction that would be cheapest to rollback** (usually the one with fewer changes), rolling it back and returning error 1213. The other transaction then proceeds. Best practices to avoid deadlocks: always access tables/rows in a consistent order, keep transactions short, use appropriate index to minimize lock scope.
+
+> **Q: What is a SAVEPOINT and when would you use it?**  
+> **A:** A `SAVEPOINT` creates a named **partial rollback point** within a transaction. `ROLLBACK TO savepoint_name` undoes all changes since that savepoint without rolling back the entire transaction, and `RELEASE SAVEPOINT` removes it. Use case: a complex multi-step process (e.g., insert order → insert 5 order items) where you want to retry or skip a failed step without losing the entire transaction's work. After a `ROLLBACK TO SAVEPOINT`, the transaction is still active — you can continue or commit/rollback the rest.
+
 ---
 
 ## 25. Constraints
@@ -2052,6 +2157,27 @@ FOREIGN KEY (customer_id) REFERENCES customers(customer_id);
 ALTER TABLE orders DROP FOREIGN KEY fk_customer;
 ALTER TABLE orders DROP CHECK chk_total;
 ```
+
+### ⚡ Recall
+| Constraint | Enforces |
+|------------|---------|
+| `PRIMARY KEY` | Unique + NOT NULL — one per table |
+| `FOREIGN KEY` | Referential integrity between tables |
+| `UNIQUE` | No duplicate values (NULLs allowed, multiple NULLs ok) |
+| `NOT NULL` | Column must have a value |
+| `CHECK` | Custom boolean condition (MySQL 8.0.16+) |
+| `DEFAULT` | Auto-fill when no value provided |
+
+### 🎯 Interview Q&A
+
+> **Q: What is the difference between PRIMARY KEY and UNIQUE constraints?**  
+> **A:** Both enforce uniqueness, but differ in three ways: (1) **NULLs** — a PRIMARY KEY column cannot be NULL; a UNIQUE column can contain NULL (and multiple NULLs are allowed since NULL ≠ NULL); (2) **Count** — a table can have only **one** PRIMARY KEY (though it can span multiple columns); a table can have **multiple** UNIQUE constraints; (3) **Clustering** — in InnoDB, the PRIMARY KEY determines the physical row order (clustered index); UNIQUE constraints create a secondary non-clustered index.
+
+> **Q: What are the ON DELETE options for a Foreign Key and when do you use each?**  
+> **A:** `RESTRICT` (default) — blocks deletion of a parent row if child rows reference it; safest option, prevents orphan data. `CASCADE` — automatically deletes child rows when the parent is deleted; useful for tightly coupled relationships like `order → order_items`. `SET NULL` — sets the FK column to NULL in child rows when parent is deleted; useful for optional relationships (e.g., employee's manager). `NO ACTION` — same as RESTRICT in MySQL (checked at statement end). Use `CASCADE` sparingly — it can trigger large unintended deletes. Always think about the business meaning of "what should happen to children when parent disappears?"
+
+> **Q: What is a composite primary key? When would you use one?**  
+> **A:** A **composite primary key** (or compound PK) uses two or more columns together to uniquely identify a row. Use it for **junction/bridge tables** that represent many-to-many relationships — e.g., `order_items(order_id, product_id)` where neither column alone is unique, but the combination is. It's also common for tables that naturally have a multi-column unique identity (e.g., `enrollments(student_id, course_id, semester)`). Avoid composite PKs on regular entity tables — a surrogate auto-increment `INT` PK is simpler and more efficient as a foreign key target.
 
 ---
 
@@ -2113,9 +2239,23 @@ CREATE TABLE employees (emp_id INT PK, dept_id INT FK→departments);
 the whole key (2NF), and nothing but the key (3NF). So help me Codd."
 ```
 
+### 🎯 Interview Q&A
+
+> **Q: What is normalization and why is it important?**  
+> **A:** **Normalization** is the process of organizing a relational database to reduce data redundancy and improve data integrity. It works by decomposing tables into smaller, logically focused tables and defining relationships between them. Benefits: (1) **No update anomalies** — a customer's address exists in one place; change it once, it's updated everywhere; (2) **No insertion anomalies** — you can insert an order without needing to re-enter all customer info; (3) **No deletion anomalies** — deleting an order doesn't accidentally delete customer info. The trade-off is that normalized databases require more JOINs for queries.
+
+> **Q: Explain 1NF, 2NF, and 3NF with a concrete example.**  
+> **A:** Using a `Sales` table with columns `(order_id, customer_id, customer_name, customer_city, product_id, product_name, qty)`: **1NF violation** — if `product_id` holds "P1, P2" (a list) in one cell; fix by making each product its own row. **2NF violation** (with composite PK `order_id + product_id`) — `customer_name` depends only on `customer_id`, not on the full PK; fix by moving customer columns to a `Customers` table. **3NF violation** — `customer_city` depends on `customer_id` (a non-key), not directly on `order_id`; fix by moving city to the `Customers` table. After normalization: `Orders(order_id, customer_id)`, `Customers(customer_id, name, city)`, `OrderItems(order_id, product_id, qty)`, `Products(product_id, name)`.
+
+> **Q: What is denormalization and when would you deliberately denormalize?**  
+> **A:** **Denormalization** is intentionally introducing redundancy to improve read performance — the opposite of normalization. You might denormalize when: (1) **Read-heavy workloads** — reporting/analytics queries join many tables; pre-joining and storing the result avoids expensive runtime JOINs; (2) **Data warehousing** — OLAP systems (star/snowflake schemas) are intentionally denormalized for fast aggregations; (3) **High-traffic counters** — storing a `comment_count` on a posts table instead of counting every time. The trade-off is complexity in maintaining consistency when data changes. Modern OLTP databases are usually 3NF; data warehouses are often denormalized.
+
+> **Q: What is the difference between OLTP and OLAP database design?**  
+> **A:** **OLTP (Online Transaction Processing)** databases are optimized for **fast, small transactions** — insertions, updates, and point lookups. They are highly normalized (3NF), have many tables with narrow rows, and prioritize write performance and data integrity. Examples: e-commerce order systems, banking. **OLAP (Online Analytical Processing)** databases are optimized for **complex analytical queries** over large data volumes — aggregations, time-series analysis, joins across many rows. They are often denormalized (star schema with fact + dimension tables), have wide rows, and prioritize read/query performance. Examples: data warehouses, BI systems. MySQL serves OLTP well; dedicated tools like Redshift or BigQuery serve OLAP.
+
 ---
 
-## 27. Joins vs Subqueries vs CTEs — When to Use
+## 27. Joins vs Subqueries vs CTEs
 
 ### Decision Guide
 ```
@@ -2168,6 +2308,24 @@ SELECT first_name, salary
 FROM dept_avgs
 WHERE salary > dept_avg;
 ```
+
+### ⚡ Recall
+```
+JOIN        → combining data from multiple tables
+Subquery    → single-use computed value or filter
+CTE         → named, reusable, readable — modern standard
+Correlated  → re-runs per row → AVOID for large tables
+EXISTS      → faster than IN for large sets
+Recursive   → CTE for trees/hierarchies
+```
+
+### 🎯 Interview Q&A
+
+> **Q: A query uses a correlated subquery. How would you rewrite it to be more performant?**  
+> **A:** Replace the correlated subquery with a pre-aggregated JOIN or CTE. Example: instead of `WHERE salary > (SELECT AVG(salary) FROM employees WHERE dept_id = e.dept_id)` (runs N times), use a CTE: `WITH dept_avg AS (SELECT dept_id, AVG(salary) AS avg FROM employees GROUP BY dept_id) SELECT e.* FROM employees e JOIN dept_avg d ON e.dept_id = d.dept_id WHERE e.salary > d.avg` — the aggregation runs once. Always run `EXPLAIN` on both to confirm the correlated version has a much higher row estimate.
+
+> **Q: What is the general rule for choosing between JOIN, subquery, and CTE?**  
+> **A:** Use a **JOIN** when you need columns from both tables in the output and the relationship is straightforward. Use a **subquery** for simple, one-off scalar lookups or existence checks (`IN`, `EXISTS`). Use a **CTE** when you need a result set that is: referenced multiple times, part of a multi-step transformation, recursive, or just too complex to inline readably. The CTE should be your default for any non-trivial query. Avoid correlated subqueries (re-runs per row) on large tables — always prefer a pre-aggregated JOIN or window function.
 
 ---
 
@@ -2247,9 +2405,26 @@ SET GLOBAL long_query_time = 1;  -- log queries > 1 second
 ✅ Avoid leading wildcards in LIKE
 ```
 
+### 🎯 Interview Q&A
+
+> **Q: How do you read the output of EXPLAIN? What are the most important columns?**  
+> **A:** The key columns to examine: **`type`** (access method) — from best to worst: `const` (PK lookup), `eq_ref` (unique join), `ref` (index lookup), `range` (index range scan), `index` (full index scan), `ALL` (full table scan — usually bad). **`key`** — which index was actually used (NULL = no index). **`rows`** — estimated number of rows MySQL will examine (lower is better). **`Extra`** — warnings like `Using filesort` (extra sort step needed, no suitable index for ORDER BY), `Using temporary` (temp table used, often from GROUP BY/ORDER BY), `Using index` (covering index, great). When you see `type: ALL` on a large table, that's your primary optimization target.
+
+> **Q: Why does putting a function around an indexed column break index usage?**  
+> **A:** MySQL indexes store the raw column values. When you write `WHERE YEAR(order_date) = 2024`, MySQL cannot use an index on `order_date` because it would need to call `YEAR()` on every indexed value to compare — the index is effectively useless. The fix is to rewrite as a **range condition on the raw column**: `WHERE order_date >= '2024-01-01' AND order_date < '2025-01-01'` — now MySQL can use the index to find the range directly. The rule: **never wrap the indexed column in a function on the left side of a WHERE condition**.
+
+> **Q: What is a query execution plan and why is it important?**  
+> **A:** A **query execution plan** (produced by `EXPLAIN`) shows how MySQL's query optimizer has decided to execute a query — which indexes to use, in what order to access tables, how to perform joins, and estimated row counts. It's important because the same logical query can be executed in many different physical ways with dramatically different performance. The optimizer makes cost-based decisions that aren't always optimal — by reading the execution plan, you can identify full table scans, missing indexes, expensive sorts, and then either add indexes, rewrite the query, or use optimizer hints to fix them.
+
+> **Q: What are some common causes of slow queries and how do you fix them?**  
+> **A:** The most common causes: (1) **Missing index** → add an index on WHERE/JOIN/ORDER BY columns; (2) **Function on indexed column** → rewrite WHERE clause to keep the column bare; (3) **SELECT *** → select only needed columns; (4) **Correlated subquery** → rewrite as a pre-aggregated JOIN or CTE; (5) **Leading wildcard LIKE** → use full-text search or redesign; (6) **Large OFFSET pagination** → switch to keyset pagination; (7) **No LIMIT on large result sets** → always LIMIT when possible; (8) **Lock contention** → keep transactions short, use appropriate isolation level.
+
 ---
 
 ## 29. User Management & Security
+
+### Concept
+MySQL has a built-in access control system. Users are identified by **username + host** (e.g., `'analyst'@'localhost'`). Privileges are granted at the global, database, table, or column level, following the **principle of least privilege** — give users only the permissions they actually need.
 
 ### Code
 ```sql
@@ -2287,9 +2462,30 @@ GRANT SELECT ON sales_db.* TO 'reporter'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
+### ⚡ Recall
+- User identity = `'username'@'host'` — `%` means any host
+- `GRANT` gives privileges; `REVOKE` takes them away
+- `FLUSH PRIVILEGES` reloads the grant tables
+- Principle of least privilege — grant only what's needed
+- Never use the `root` account for application connections
+
+### 🎯 Interview Q&A
+
+> **Q: What is the principle of least privilege and how does it apply to MySQL?**  
+> **A:** The **principle of least privilege** means granting every user or process only the minimum permissions needed to perform their job — nothing more. In MySQL: a reporting user gets only `SELECT`; an application user gets `SELECT, INSERT, UPDATE, DELETE` on specific tables; a DBA gets `ALL PRIVILEGES`. Never have your application connect as `root`. If the application is compromised, an attacker with limited privileges can do far less damage than root. Also limit by host — `'app'@'10.0.1.%'` restricts the account to a specific network.
+
+> **Q: What is the difference between `GRANT ALL PRIVILEGES` and specific grants?**  
+> **A:** `GRANT ALL PRIVILEGES ON db.* TO user` gives the user every privilege on that database — including `DROP`, `ALTER`, `CREATE`, and `DELETE`, which can be destructive. Specific grants like `GRANT SELECT, INSERT, UPDATE ON db.orders TO user` limit the user to only those operations on that specific table. For production applications, specific grants are always safer. For DBAs doing maintenance, broader grants may be appropriate. The `WITH GRANT OPTION` clause additionally lets a user grant their own privileges to others — use it very sparingly.
+
+> **Q: What is SQL Injection and how do you prevent it at the database level?**  
+> **A:** **SQL Injection** is an attack where malicious SQL code is inserted into an input that gets concatenated into a query string — e.g., username input of `'; DROP TABLE users; --` executing destructive SQL. Database-level defenses: (1) **Least privilege** — even if injection occurs, a read-only user can't DROP tables; (2) **Stored procedures** — parameterized calls reduce dynamic SQL surface; (3) **Input validation** — validate data types and lengths. Application-level: always use **parameterized queries / prepared statements** — the primary defense that ensures user input is always treated as data, never as SQL code.
+
 ---
 
 ## 30. Data Analysis Patterns
+
+### Concept
+Data analysts use SQL not just to fetch data, but to derive insights. These patterns appear repeatedly in business analytics, data science, and BI work: trend analysis, segmentation, retention, ranking, and statistical summaries.
 
 ### Code — Common Analysis Queries
 
@@ -2434,6 +2630,30 @@ JOIN products p ON o.product_id = p.product_id
 GROUP BY YEAR(order_date)
 ORDER BY year;
 ```
+
+### ⚡ Recall
+| Pattern | Tools Used |
+|---------|-----------|
+| YoY Growth | LAG() + GROUP BY YEAR |
+| Running Total | SUM() OVER (ORDER BY date) |
+| Moving Average | AVG() OVER (ROWS BETWEEN n PRECEDING AND CURRENT ROW) |
+| Cohort Retention | MIN(date) + DATE_FORMAT + COUNT DISTINCT |
+| RFM Scoring | DATEDIFF + COUNT + SUM + NTILE(5) |
+| Funnel | COUNT(DISTINCT CASE WHEN event=X THEN id END) |
+| Pivot Table | SUM(CASE WHEN category=X THEN value ELSE 0 END) |
+| Median | ROW_NUMBER + COUNT OVER + AVG |
+| Percentile | NTILE(100) OVER (ORDER BY col) |
+
+### 🎯 Interview Q&A
+
+> **Q: How would you calculate month-over-month revenue growth in MySQL?**  
+> **A:** Use `LAG()` to compare each month's revenue to the previous month: `SELECT DATE_FORMAT(order_date,'%Y-%m') AS month, SUM(total) AS revenue, LAG(SUM(total)) OVER (ORDER BY DATE_FORMAT(order_date,'%Y-%m')) AS prev_revenue, ROUND((SUM(total) - LAG(SUM(total)) OVER (ORDER BY DATE_FORMAT(order_date,'%Y-%m'))) / LAG(SUM(total)) OVER (ORDER BY DATE_FORMAT(order_date,'%Y-%m')) * 100, 2) AS mom_pct FROM orders GROUP BY month`. Put the GROUP BY result in a CTE first to avoid repeating the LAG expression.
+
+> **Q: What is a cohort analysis and how do you build one in SQL?**  
+> **A:** A **cohort analysis** groups users by when they first performed an action (their "cohort"), then tracks their behavior over subsequent time periods — typically measuring retention. Steps: (1) find each user's `cohort_month` = `MIN(order_date)` grouped by customer; (2) join all their subsequent orders back to get `order_month`; (3) GROUP BY `cohort_month, order_month` and COUNT DISTINCT customers. The result shows how many users from each signup cohort are still active in months 1, 2, 3 etc. — the classic retention grid.
+
+> **Q: What is RFM analysis?**  
+> **A:** **RFM (Recency, Frequency, Monetary)** is a customer segmentation technique that scores customers on three dimensions: **Recency** — how recently they last purchased (lower days = better); **Frequency** — how many times they've purchased (higher = better); **Monetary** — how much total they've spent (higher = better). Each dimension is scored 1–5 (using `NTILE(5)`), then combined into a 3-digit score like "555" (best customer) or "111" (churned customer). This enables targeted marketing: "555" customers get VIP treatment; "511" customers (high value but not recent) get win-back campaigns.
 
 ---
 
@@ -2583,3 +2803,1040 @@ Need all from both? → LEFT + UNION + RIGHT
 *📌 Bookmark this file. These are the patterns that appear in 90% of real-world MySQL work.*
 
 *⭐ Star this repo if it helped you!*
+
+---
+
+## 32. Storage Engines — InnoDB vs MyISAM
+
+### Concept
+A **storage engine** is the underlying software component that handles how MySQL stores, reads, and writes data to disk. MySQL supports multiple engines per table. **InnoDB** is the default and recommended engine since MySQL 5.5.
+
+| Feature | InnoDB | MyISAM |
+|---------|--------|--------|
+| Transactions | ✅ Yes | ❌ No |
+| Foreign Keys | ✅ Yes | ❌ No |
+| Row-level locking | ✅ Yes | ❌ Table-level only |
+| Crash recovery | ✅ Automatic | ❌ Manual repair needed |
+| Full-text search | ✅ MySQL 5.6+ | ✅ Yes (legacy) |
+| Clustered index | ✅ Yes (PK) | ❌ No |
+| ACID compliant | ✅ Yes | ❌ No |
+| Read speed | Fast | Slightly faster reads |
+| Write speed | Fast with transactions | Fast for bulk inserts |
+
+### Code
+```sql
+-- Check engine of a table
+SHOW TABLE STATUS LIKE 'employees'\G
+
+-- Create table with explicit engine
+CREATE TABLE logs (
+    id      INT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE = InnoDB;
+
+-- Change engine of existing table
+ALTER TABLE old_table ENGINE = InnoDB;
+
+-- Check all tables and their engines
+SELECT table_name, engine
+FROM information_schema.tables
+WHERE table_schema = 'sales_db';
+```
+
+### ⚡ Recall
+- **Always use InnoDB** — transactions, FK, row locks, crash recovery
+- MyISAM = legacy, no transactions, no FK — avoid for new development
+- InnoDB = default since MySQL 5.5 — don't change unless you have a very specific reason
+
+### 🎯 Interview Q&A
+
+> **Q: What is the difference between InnoDB and MyISAM?**  
+> **A:** **InnoDB** is a transactional storage engine — it supports ACID transactions, foreign key constraints, row-level locking, and automatic crash recovery. It uses a clustered index (data stored with the PK). **MyISAM** is a non-transactional engine — no transactions, no FK, only table-level locking (entire table locked on write, blocking all readers), and no automatic crash recovery. MyISAM is slightly faster for full-table read-only workloads but catastrophically bad for concurrent writes. InnoDB has been the default since MySQL 5.5 and should be used for virtually all new tables.
+
+> **Q: What is row-level locking vs table-level locking and why does it matter?**  
+> **A:** **Row-level locking** (InnoDB) locks only the specific rows being modified, allowing other transactions to read and write different rows concurrently — essential for high-concurrency OLTP workloads. **Table-level locking** (MyISAM) locks the entire table on any write, blocking all other reads and writes until the lock is released — disastrous for concurrent access. For example, with MyISAM, a slow INSERT causes all SELECT queries on that table to wait. With InnoDB row-level locks, only transactions touching the same rows are blocked.
+
+---
+
+## 33. UNION & Set Operations
+
+### Concept
+**Set operations** combine result sets from multiple SELECT statements. MySQL supports `UNION`, `UNION ALL`, and (via workarounds) `INTERSECT` and `EXCEPT`.
+
+- `UNION` — combines results, **removes duplicates**
+- `UNION ALL` — combines results, **keeps all rows** (faster)
+- `INTERSECT` — rows in BOTH result sets (MySQL 8.0+)
+- `EXCEPT` / `MINUS` — rows in first but NOT second (MySQL 8.0+)
+
+Rules: each SELECT must have the **same number of columns** with **compatible data types**. Column names come from the **first SELECT**.
+
+### Code
+```sql
+-- UNION (removes duplicates)
+SELECT first_name, email FROM employees
+UNION
+SELECT name, email FROM contractors;
+
+-- UNION ALL (keeps all rows, faster — no dedup step)
+SELECT first_name, email FROM employees
+UNION ALL
+SELECT name, email FROM contractors;
+
+-- UNION with ORDER BY (must be at the end, applies to whole result)
+SELECT first_name, 'employee' AS type FROM employees
+UNION ALL
+SELECT name, 'contractor' AS type FROM contractors
+ORDER BY first_name;
+
+-- Simulate INTERSECT — customers who placed orders AND left reviews
+SELECT customer_id FROM orders
+INTERSECT
+SELECT customer_id FROM reviews;
+
+-- Simulate EXCEPT (MINUS) — customers who ordered but never reviewed
+SELECT customer_id FROM orders
+EXCEPT
+SELECT customer_id FROM reviews;
+
+-- Pre-MySQL 8.0 INTERSECT workaround using IN
+SELECT DISTINCT customer_id FROM orders
+WHERE customer_id IN (SELECT customer_id FROM reviews);
+
+-- Pre-MySQL 8.0 EXCEPT workaround using NOT IN / NOT EXISTS
+SELECT DISTINCT customer_id FROM orders
+WHERE customer_id NOT IN (SELECT customer_id FROM reviews);
+
+-- Combining UNION with CTEs for complex reporting
+WITH all_staff AS (
+    SELECT emp_id AS id, first_name AS name, salary, 'FT' AS type FROM employees
+    UNION ALL
+    SELECT con_id, name, rate * 2080, 'CT' AS type FROM contractors
+)
+SELECT type, COUNT(*) AS headcount, AVG(salary) AS avg_compensation
+FROM all_staff
+GROUP BY type;
+```
+
+### ⚡ Recall
+- `UNION` = merge + deduplicate (slower)
+- `UNION ALL` = merge only (faster — use when duplicates don't matter)
+- Same number of columns, compatible types required
+- ORDER BY at the very end applies to the entire union result
+- MySQL 8.0+ natively supports `INTERSECT` and `EXCEPT`
+
+### 🎯 Interview Q&A
+
+> **Q: What is the difference between UNION and UNION ALL?**  
+> **A:** Both merge result sets from multiple SELECT statements, but `UNION` performs an implicit `DISTINCT` — it removes duplicate rows from the combined result, requiring a sort/hash operation. `UNION ALL` keeps every row including duplicates and is significantly faster since it skips the deduplication step. Use `UNION ALL` by default when you know duplicates won't occur (different source tables) or when duplicates are acceptable. Use `UNION` only when you actually need deduplication. A common mistake is using `UNION` everywhere "just to be safe" and paying unnecessary performance costs.
+
+> **Q: What are the requirements for combining queries with UNION?**  
+> **A:** All SELECT statements in a UNION must: (1) have the **same number of columns**; (2) have columns with **compatible (not necessarily identical) data types** in corresponding positions — MySQL will do implicit casting; (3) use `ORDER BY` only at the **very end** (applies to the full result, not individual SELECTs). The **column names** in the output come from the first SELECT statement. You can use column aliases in the first SELECT to control output column names.
+
+---
+
+## 34. JSON in MySQL
+
+### Concept
+MySQL 5.7+ has a native **JSON data type** that validates JSON on insert, stores it in an optimized binary format, and provides functions to read, search, and modify JSON documents. This bridges relational and document-store patterns.
+
+### Code
+```sql
+-- Create table with JSON column
+CREATE TABLE user_profiles (
+    user_id  INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50),
+    metadata JSON
+);
+
+-- Insert JSON
+INSERT INTO user_profiles (username, metadata)
+VALUES ('alice', '{"age": 30, "city": "NYC", "tags": ["vip","premium"]}');
+
+-- Read JSON values — JSON_EXTRACT or -> operator
+SELECT username, JSON_EXTRACT(metadata, '$.age') AS age FROM user_profiles;
+SELECT username, metadata->'$.city' AS city FROM user_profiles;         -- shorthand
+SELECT username, metadata->>'$.city' AS city FROM user_profiles;        -- unquoted value
+
+-- Filter on JSON value
+SELECT * FROM user_profiles
+WHERE metadata->>'$.city' = 'NYC';
+
+-- Update JSON field
+UPDATE user_profiles
+SET metadata = JSON_SET(metadata, '$.age', 31)
+WHERE user_id = 1;
+
+-- Add new key to JSON
+UPDATE user_profiles
+SET metadata = JSON_SET(metadata, '$.loyalty_tier', 'gold')
+WHERE user_id = 1;
+
+-- Remove a key from JSON
+UPDATE user_profiles
+SET metadata = JSON_REMOVE(metadata, '$.tags')
+WHERE user_id = 1;
+
+-- Check if key exists
+SELECT * FROM user_profiles
+WHERE JSON_CONTAINS_PATH(metadata, 'one', '$.city');
+
+-- Search in JSON array
+SELECT * FROM user_profiles
+WHERE JSON_CONTAINS(metadata->'$.tags', '"vip"');
+
+-- Get all keys of JSON object
+SELECT JSON_KEYS(metadata) FROM user_profiles WHERE user_id = 1;
+
+-- JSON_TABLE — expand JSON array into rows (MySQL 8.0+)
+SELECT jt.*
+FROM user_profiles,
+JSON_TABLE(metadata, '$.tags[*]' COLUMNS (tag VARCHAR(50) PATH '$')) AS jt
+WHERE user_id = 1;
+
+-- Index on JSON value (generated column approach)
+ALTER TABLE user_profiles
+ADD COLUMN city VARCHAR(100) GENERATED ALWAYS AS (metadata->>'$.city') STORED;
+CREATE INDEX idx_city ON user_profiles(city);
+```
+
+### ⚡ Recall
+| Syntax | Meaning |
+|--------|---------|
+| `col->'$.key'` | Extract JSON value (quoted) |
+| `col->>'$.key'` | Extract JSON value (unquoted string) |
+| `JSON_SET(col, '$.key', val)` | Set/update a value |
+| `JSON_REMOVE(col, '$.key')` | Remove a key |
+| `JSON_CONTAINS(col, '"val"')` | Check if value exists |
+| `JSON_ARRAY_APPEND` | Add to a JSON array |
+| `JSON_TABLE` | Expand JSON into rows |
+
+### 🎯 Interview Q&A
+
+> **Q: When would you use a JSON column in MySQL instead of a separate normalized table?**  
+> **A:** Use JSON for **truly variable, schema-less attributes** where the set of properties differs significantly between rows and you don't need to filter/sort/aggregate on those properties. Examples: user preferences, product attributes (a shirt has color/size; a book has ISBN/author — no single schema fits all), or third-party API response storage. Use a **normalized table** when you need to query, filter, index, or join on the data inside — SQL is much more efficient on relational columns than JSON extraction. JSON in MySQL is a convenience feature, not a replacement for proper schema design.
+
+> **Q: How do you index data inside a JSON column?**  
+> **A:** MySQL cannot directly index a JSON column, but you can create a **generated column** that extracts the JSON value, then index the generated column. Example: `ALTER TABLE users ADD COLUMN city VARCHAR(100) GENERATED ALWAYS AS (metadata->>'$.city') STORED; CREATE INDEX idx_city ON users(city);` — now `WHERE metadata->>'$.city' = 'NYC'` can use the index via the generated column. This is the standard pattern for making JSON data queryable at scale.
+
+---
+
+## 35. Events & Scheduled Tasks
+
+### Concept
+MySQL **Events** are scheduled stored programs — like cron jobs inside the database. They run SQL code automatically at defined times without external scheduling tools.
+
+Use cases: purging old log records, generating nightly summary tables, sending scheduled reports, resetting counters.
+
+### Code
+```sql
+-- Enable the event scheduler (off by default in some configs)
+SET GLOBAL event_scheduler = ON;
+SHOW VARIABLES LIKE 'event_scheduler';
+
+-- One-time event (runs once at a specific time)
+CREATE EVENT cleanup_once
+ON SCHEDULE AT '2025-01-01 02:00:00'
+DO
+    DELETE FROM logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 YEAR);
+
+-- Recurring event (runs every day at 2am)
+CREATE EVENT daily_cleanup
+ON SCHEDULE EVERY 1 DAY
+STARTS '2024-01-01 02:00:00'
+DO
+    DELETE FROM session_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
+
+-- Recurring with DO block (multiple statements)
+DELIMITER //
+CREATE EVENT weekly_summary
+ON SCHEDULE EVERY 1 WEEK
+STARTS '2024-01-07 00:00:00'
+DO
+BEGIN
+    INSERT INTO weekly_revenue_summary (week_start, total_revenue)
+    SELECT DATE_FORMAT(NOW() - INTERVAL 7 DAY, '%Y-%m-%d'),
+           SUM(total)
+    FROM orders
+    WHERE order_date >= NOW() - INTERVAL 7 DAY;
+    
+    DELETE FROM temp_calculations WHERE created_at < NOW() - INTERVAL 1 DAY;
+END //
+DELIMITER ;
+
+-- Disable an event
+ALTER EVENT daily_cleanup DISABLE;
+
+-- Enable an event
+ALTER EVENT daily_cleanup ENABLE;
+
+-- Show all events
+SHOW EVENTS FROM sales_db;
+
+-- Drop an event
+DROP EVENT IF EXISTS daily_cleanup;
+```
+
+### ⚡ Recall
+- `event_scheduler = ON` must be enabled globally
+- `AT datetime` = one-time | `EVERY n UNIT` = recurring
+- `STARTS` = when to begin the schedule
+- `DISABLE` / `ENABLE` to pause/resume without dropping
+- Events are stored in `information_schema.EVENTS`
+
+### 🎯 Interview Q&A
+
+> **Q: What are MySQL Events and when would you use them over application-level cron jobs?**  
+> **A:** MySQL Events are scheduled tasks that run SQL at defined intervals entirely within the database server. Use them over application cron jobs when: (1) the task is purely database-bound (purging rows, refreshing summaries) — keeping it in the database avoids the network round-trip; (2) you want the schedule to survive application deployments and server changes; (3) there's no application server available. Prefer application-level schedulers (cron, Celery, Quartz) when: you need complex logic, retry handling, monitoring, alerting, or the task involves non-database resources. Events have no retry mechanism and limited error visibility.
+
+---
+
+## 36. Error Handling in Procedures
+
+### Concept
+MySQL stored procedures support structured error handling with **DECLARE HANDLER** — you can catch specific errors and define what to do: CONTINUE, EXIT, or UNDO the block.
+
+### Code
+```sql
+DELIMITER //
+
+CREATE PROCEDURE safe_insert_employee(
+    IN p_first  VARCHAR(50),
+    IN p_email  VARCHAR(100),
+    IN p_salary DECIMAL(10,2)
+)
+BEGIN
+    -- Declare variables
+    DECLARE v_error_msg  VARCHAR(255) DEFAULT '';
+    DECLARE v_success    BOOLEAN DEFAULT TRUE;
+    
+    -- Handler for duplicate key (error 1062)
+    DECLARE CONTINUE HANDLER FOR 1062
+    BEGIN
+        SET v_error_msg = CONCAT('Duplicate email: ', p_email);
+        SET v_success = FALSE;
+    END;
+    
+    -- Handler for any SQL exception
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1
+            v_error_msg = MESSAGE_TEXT;
+        SET v_success = FALSE;
+    END;
+    
+    -- Attempt the insert
+    INSERT INTO employees (first_name, email, salary)
+    VALUES (p_first, p_email, p_salary);
+    
+    -- Return result
+    IF v_success THEN
+        SELECT 'SUCCESS' AS status, LAST_INSERT_ID() AS new_id;
+    ELSE
+        SELECT 'ERROR' AS status, v_error_msg AS message;
+    END IF;
+END //
+
+-- EXIT handler (stops the block immediately on error)
+CREATE PROCEDURE critical_operation()
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'Operation failed and rolled back' AS message;
+    END;
+    
+    START TRANSACTION;
+    UPDATE accounts SET balance = balance - 500 WHERE id = 1;
+    UPDATE accounts SET balance = balance + 500 WHERE id = 2;
+    COMMIT;
+    SELECT 'Transfer complete' AS message;
+END //
+
+-- Raise a custom error with SIGNAL
+CREATE PROCEDURE validate_age(IN p_age INT)
+BEGIN
+    IF p_age < 0 OR p_age > 150 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Age must be between 0 and 150',
+                MYSQL_ERRNO = 1644;
+    END IF;
+    SELECT p_age AS valid_age;
+END //
+
+DELIMITER ;
+```
+
+### ⚡ Recall
+- `DECLARE CONTINUE HANDLER` = catch error and keep going
+- `DECLARE EXIT HANDLER` = catch error and exit the block
+- `FOR 1062` = specific error number | `FOR SQLEXCEPTION` = any error
+- `SIGNAL SQLSTATE '45000'` = raise a custom error
+- `GET DIAGNOSTICS` = retrieve the error message after an exception
+
+### 🎯 Interview Q&A
+
+> **Q: How do you handle errors in MySQL stored procedures?**  
+> **A:** MySQL uses `DECLARE HANDLER` for error handling. A `CONTINUE HANDLER` catches the error and lets execution proceed to the next statement; an `EXIT HANDLER` catches the error and immediately exits the current `BEGIN...END` block. You specify which errors to catch: by error number (`FOR 1062` = duplicate key), by SQLSTATE code (`FOR SQLSTATE '23000'`), or by class (`FOR SQLEXCEPTION` catches all SQL errors). Inside the handler block, use `GET DIAGNOSTICS` to retrieve the error message, set flag variables, and return meaningful status to the caller.
+
+---
+
+## 37. Cursors
+
+### Concept
+A **cursor** allows you to iterate through a result set **row by row** inside a stored procedure. Unlike set-based SQL (which processes all rows at once), cursors process one row at a time — useful for complex per-row logic that can't be done with set-based operations.
+
+> ⚠️ Cursors are slow — always prefer set-based operations. Use cursors only when per-row logic is genuinely irreducible.
+
+### Code
+```sql
+DELIMITER //
+
+CREATE PROCEDURE process_employees_one_by_one()
+BEGIN
+    -- Variables to hold each row's data
+    DECLARE v_emp_id    INT;
+    DECLARE v_salary    DECIMAL(10,2);
+    DECLARE v_done      INT DEFAULT FALSE;
+    
+    -- Declare the cursor
+    DECLARE emp_cursor CURSOR FOR
+        SELECT emp_id, salary FROM employees WHERE is_active = 1;
+    
+    -- Handler: fires when cursor reaches last row
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+    
+    -- Open the cursor (executes the SELECT)
+    OPEN emp_cursor;
+    
+    -- Loop through rows
+    read_loop: LOOP
+        -- Fetch one row into variables
+        FETCH emp_cursor INTO v_emp_id, v_salary;
+        
+        -- Exit loop when no more rows
+        IF v_done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Per-row logic here
+        IF v_salary < 40000 THEN
+            UPDATE employees SET salary = 40000 WHERE emp_id = v_emp_id;
+        END IF;
+        
+    END LOOP;
+    
+    -- Always close the cursor
+    CLOSE emp_cursor;
+    
+    SELECT 'Done processing employees' AS status;
+END //
+
+DELIMITER ;
+```
+
+### ⚡ Recall
+- **Declare → Open → Fetch in loop → Close**
+- `DECLARE CONTINUE HANDLER FOR NOT FOUND` = detects end of result set
+- `FETCH INTO` = reads next row into variables
+- Always `CLOSE` the cursor when done
+- **Prefer set-based SQL** — cursors are a last resort
+
+### 🎯 Interview Q&A
+
+> **Q: What is a cursor in MySQL and when should you use one?**  
+> **A:** A cursor is a database object that allows row-by-row traversal of a query result inside a stored procedure. You declare it, open it (which executes the query), fetch rows one at a time into variables, process each row, and close it when done. Cursors should be used **rarely** — only for logic that genuinely cannot be expressed as set-based SQL, such as complex iterative calculations where each row's output depends on the previous row's result, or when calling an external stored procedure per row. In almost all cases, a single set-based UPDATE, INSERT...SELECT, or window function is many times faster than a cursor.
+
+---
+
+## 38. Partitioning
+
+### Concept
+**Table partitioning** splits a large table into smaller, physically separate sub-tables (partitions) while appearing as one table to queries. MySQL can then scan only the relevant partitions (**partition pruning**), dramatically speeding up range-based queries on large tables.
+
+Types: RANGE, LIST, HASH, KEY
+
+### Code
+```sql
+-- RANGE partitioning (most common — by date range)
+CREATE TABLE orders_partitioned (
+    order_id    INT AUTO_INCREMENT,
+    order_date  DATE NOT NULL,
+    customer_id INT,
+    total       DECIMAL(10,2),
+    PRIMARY KEY (order_id, order_date)  -- PK must include partition key
+)
+PARTITION BY RANGE (YEAR(order_date)) (
+    PARTITION p2021 VALUES LESS THAN (2022),
+    PARTITION p2022 VALUES LESS THAN (2023),
+    PARTITION p2023 VALUES LESS THAN (2024),
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p_future VALUES LESS THAN MAXVALUE
+);
+
+-- RANGE COLUMNS (use date directly)
+CREATE TABLE sales (
+    id         INT,
+    sale_date  DATE NOT NULL,
+    amount     DECIMAL(10,2)
+)
+PARTITION BY RANGE COLUMNS(sale_date) (
+    PARTITION p_q1 VALUES LESS THAN ('2024-04-01'),
+    PARTITION p_q2 VALUES LESS THAN ('2024-07-01'),
+    PARTITION p_q3 VALUES LESS THAN ('2024-10-01'),
+    PARTITION p_q4 VALUES LESS THAN ('2025-01-01')
+);
+
+-- LIST partitioning (by discrete values)
+CREATE TABLE employees_by_region (
+    emp_id  INT,
+    region  VARCHAR(20),
+    salary  DECIMAL(10,2)
+)
+PARTITION BY LIST COLUMNS(region) (
+    PARTITION p_north VALUES IN ('NY', 'NJ', 'CT'),
+    PARTITION p_south VALUES IN ('TX', 'FL', 'GA'),
+    PARTITION p_west  VALUES IN ('CA', 'WA', 'OR')
+);
+
+-- HASH partitioning (even distribution)
+CREATE TABLE sessions (
+    session_id  INT,
+    user_id     INT,
+    data        TEXT
+)
+PARTITION BY HASH(user_id)
+PARTITIONS 8;
+
+-- Check partition usage
+SELECT partition_name, table_rows
+FROM information_schema.partitions
+WHERE table_name = 'orders_partitioned';
+
+-- Add a new partition
+ALTER TABLE orders_partitioned
+ADD PARTITION (PARTITION p2025 VALUES LESS THAN (2026));
+
+-- Drop an old partition (instant! much faster than DELETE)
+ALTER TABLE orders_partitioned DROP PARTITION p2021;
+
+-- EXPLAIN to see partition pruning
+EXPLAIN SELECT * FROM orders_partitioned
+WHERE order_date BETWEEN '2024-01-01' AND '2024-12-31';
+-- Should show: partitions: p2024 (only one partition scanned)
+```
+
+### ⚡ Recall
+| Type | Split by |
+|------|---------|
+| RANGE | Contiguous ranges (year, month) |
+| LIST | Discrete value sets (region, category) |
+| HASH | Hash of a column — even distribution |
+| KEY | Similar to HASH, uses MySQL's internal hash |
+
+- Partition key must be part of the PRIMARY KEY
+- `DROP PARTITION` is instant (unlike DELETE)
+- Only works when partition key is in the WHERE clause (for pruning)
+
+### 🎯 Interview Q&A
+
+> **Q: What is table partitioning in MySQL and when would you use it?**  
+> **A:** Partitioning splits one large logical table into multiple physical sub-tables based on a partition key. MySQL automatically routes queries to the relevant partitions (**partition pruning**) — a query for 2024 data on a year-range-partitioned table scans only the 2024 partition, not all years. Use partitioning when: a table has hundreds of millions of rows and queries always filter by the same column (typically a date); you need to drop old data instantly (`DROP PARTITION` is DDL — instant vs slow DELETE); or you want to manage data lifecycle by partition. Partitioning is **not a replacement for indexes** — it works best in combination with them.
+
+---
+
+## 39. Replication Concepts
+
+### Concept
+**MySQL Replication** copies data from one server (the **source/primary**) to one or more servers (**replicas/secondaries**) — asynchronously by default. It provides high availability, read scaling, and disaster recovery.
+
+| Concept | Description |
+|---------|-------------|
+| **Binary Log (binlog)** | The source records every change to data |
+| **Relay Log** | Replica copies binlog events here |
+| **I/O Thread** | Replica reads binlog from source |
+| **SQL Thread** | Replica applies relay log events |
+| **Replication lag** | How far behind the replica is |
+| **GTID** | Global Transaction ID — reliable tracking |
+| **Semi-sync** | Source waits for at least one replica to acknowledge |
+
+### Code
+```sql
+-- On PRIMARY: check binary log status
+SHOW MASTER STATUS;
+SHOW BINARY LOGS;
+
+-- On REPLICA: check replication status
+SHOW REPLICA STATUS\G   -- MySQL 8.0+
+SHOW SLAVE STATUS\G     -- older MySQL
+
+-- Key fields in SHOW REPLICA STATUS:
+-- Replica_IO_Running: Yes     ← binary log reader running
+-- Replica_SQL_Running: Yes    ← event applier running
+-- Seconds_Behind_Source: 0   ← replication lag in seconds
+-- Last_Error: (empty)         ← no errors
+
+-- On REPLICA: basic setup (MySQL 8.0+)
+CHANGE REPLICATION SOURCE TO
+    SOURCE_HOST = '192.168.1.10',
+    SOURCE_USER = 'replication_user',
+    SOURCE_PASSWORD = 'rep_pass',
+    SOURCE_LOG_FILE = 'mysql-bin.000001',
+    SOURCE_LOG_POS = 4;
+
+START REPLICA;
+STOP REPLICA;
+
+-- Read-only replica (best practice)
+SET GLOBAL read_only = ON;
+SET GLOBAL super_read_only = ON;
+
+-- GTID-based replication (MySQL 5.6+) — easier failover
+-- In my.cnf:
+-- gtid_mode = ON
+-- enforce_gtid_consistency = ON
+
+-- Check GTID status
+SHOW VARIABLES LIKE 'gtid_mode';
+SELECT @@GLOBAL.gtid_executed;  -- GTIDs already applied
+SELECT @@GLOBAL.gtid_purged;    -- GTIDs no longer in binlog
+```
+
+### ⚡ Recall
+```
+Source → writes to binlog
+Replica I/O thread → reads binlog, writes to relay log
+Replica SQL thread → executes relay log events
+Lag = how far behind the replica is
+GTID = reliable, position-independent replication
+read_only = ON → protect replica from accidental writes
+```
+
+### 🎯 Interview Q&A
+
+> **Q: What is MySQL replication and what are its use cases?**  
+> **A:** Replication continuously copies data changes from a source server to one or more replica servers. Primary use cases: (1) **Read scaling** — route read queries to replicas, writes to source; (2) **High availability** — if source fails, promote a replica; (3) **Disaster recovery** — geo-distributed replica protects against datacenter failure; (4) **Backups** — take backups from a replica to avoid blocking the source; (5) **Analytics** — run heavy analytical queries on a replica without impacting production OLTP performance.
+
+> **Q: What is replication lag and how do you minimize it?**  
+> **A:** **Replication lag** is how many seconds the replica is behind the source — `Seconds_Behind_Source` in `SHOW REPLICA STATUS`. Causes: slow queries on the replica, single-threaded SQL application (pre-MySQL 5.7), network issues, or the replica being I/O or CPU bound. Minimizations: (1) **Parallel replication** — MySQL 5.7+ supports multi-threaded SQL thread (`slave_parallel_workers`); (2) ensure replica hardware matches source; (3) use row-based replication for efficiency; (4) avoid long-running transactions on source. For read-your-own-write consistency, applications must check lag or route to source.
+
+---
+
+## 40. Backup & Recovery
+
+### Concept
+Backups are the last line of defense against data loss. MySQL offers several backup strategies with different speed/consistency trade-offs.
+
+| Method | Tool | Type | Notes |
+|--------|------|------|-------|
+| Logical backup | `mysqldump` | SQL dump | Portable, slow for large DBs |
+| Physical backup | Percona XtraBackup | File copy | Fast, hot backup for InnoDB |
+| Binary log backup | binlog | Incremental | Point-in-time recovery |
+| Snapshot | Cloud/OS snapshot | File copy | Fast but requires brief quiesce |
+
+### Code
+```sql
+-- ========= mysqldump (command line, not SQL) =========
+
+-- Dump a single database
+-- mysqldump -u root -p sales_db > sales_db_backup.sql
+
+-- Dump specific tables
+-- mysqldump -u root -p sales_db orders customers > partial_backup.sql
+
+-- Dump all databases
+-- mysqldump -u root -p --all-databases > full_backup.sql
+
+-- Dump with no data (schema only)
+-- mysqldump -u root -p --no-data sales_db > schema_only.sql
+
+-- Dump data only (no CREATE TABLE)
+-- mysqldump -u root -p --no-create-info sales_db > data_only.sql
+
+-- Restore from dump
+-- mysql -u root -p sales_db < sales_db_backup.sql
+
+-- ========= Binary Log (Point-in-Time Recovery) =========
+
+-- Enable binary logging (in my.cnf)
+-- log_bin = /var/log/mysql/mysql-bin.log
+-- binlog_format = ROW   (recommended)
+-- expire_logs_days = 14
+
+-- Check binary log status
+SHOW BINARY LOGS;
+SHOW MASTER STATUS;
+
+-- Flush logs (start a new binlog file)
+FLUSH BINARY LOGS;
+
+-- Show events in a binlog file
+SHOW BINLOG EVENTS IN 'mysql-bin.000001' LIMIT 20;
+
+-- Point-in-time restore (command line):
+-- Restore from last full backup first, then:
+-- mysqlbinlog mysql-bin.000001 mysql-bin.000002 | mysql -u root -p
+-- Or up to a specific time:
+-- mysqlbinlog --stop-datetime="2024-05-01 14:30:00" mysql-bin.000001 | mysql -u root -p
+
+-- ========= Useful recovery checks =========
+
+-- Check InnoDB crash recovery status
+SHOW ENGINE INNODB STATUS\G
+
+-- Check for corrupted tables
+CHECK TABLE employees;
+REPAIR TABLE employees;  -- MyISAM only
+
+-- Verify table data
+CHECKSUM TABLE employees;
+```
+
+### ⚡ Recall
+- **3-2-1 rule**: 3 copies, 2 different media, 1 offsite
+- `mysqldump` = logical dump — portable but slow for large databases
+- **Binary logs** = incremental changes — enable for point-in-time recovery
+- Test your restores! A backup you've never restored is untested
+- InnoDB auto-recovers from crashes; MyISAM may need `REPAIR TABLE`
+
+### 🎯 Interview Q&A
+
+> **Q: What is the difference between a full backup and a point-in-time recovery?**  
+> **A:** A **full backup** (e.g., `mysqldump`) captures the entire database state at a single point in time. Restoring it brings the database back to that exact snapshot — but you lose all changes made after the backup. **Point-in-time recovery (PITR)** uses binary logs to replay individual transactions from after the full backup up to any specific moment — for example, recovering to 1 minute before an accidental `DELETE`. PITR requires binary logging to be enabled before the incident. The standard approach: take daily full backups + continuous binary log backup = ability to recover to any point in time.
+
+> **Q: What is `mysqldump` and what are its limitations for large databases?**  
+> **A:** `mysqldump` creates a **logical backup** — a SQL script of CREATE TABLE and INSERT statements that can recreate the database. It's simple, human-readable, and portable across MySQL versions. Limitations for large databases: (1) **Slow restore** — replaying millions of INSERT statements is much slower than copying files; (2) **Lock contention** — without `--single-transaction`, it locks tables during dump; (3) **No incremental** — always a full dump; (4) size — a 1TB database produces a huge SQL file. For large production databases, **Percona XtraBackup** (hot physical backup) is preferred — it copies InnoDB data files directly and can be restored in minutes.
+
+---
+
+## 41. MySQL System Variables & Configuration
+
+### Concept
+MySQL behavior is controlled by **system variables** — server-wide settings that affect memory, performance, logging, and behavior. Variables can be **global** (server-wide) or **session** (per-connection).
+
+### Code
+```sql
+-- View all system variables
+SHOW VARIABLES;
+SHOW GLOBAL VARIABLES;
+SHOW SESSION VARIABLES;
+
+-- View specific variables
+SHOW VARIABLES LIKE 'max_connections';
+SHOW VARIABLES LIKE '%buffer%';
+SHOW VARIABLES LIKE 'innodb%';
+
+-- Key performance variables
+SHOW VARIABLES LIKE 'innodb_buffer_pool_size';   -- main InnoDB cache (set to 70-80% RAM)
+SHOW VARIABLES LIKE 'query_cache_size';           -- deprecated in MySQL 8
+SHOW VARIABLES LIKE 'max_connections';            -- max simultaneous connections
+SHOW VARIABLES LIKE 'thread_cache_size';          -- cached threads to reuse
+SHOW VARIABLES LIKE 'tmp_table_size';             -- max in-memory temp table size
+SHOW VARIABLES LIKE 'sort_buffer_size';           -- buffer for ORDER BY operations
+
+-- Modify session variable (current connection only)
+SET SESSION sql_mode = 'STRICT_TRANS_TABLES';
+SET SESSION group_concat_max_len = 65536;
+SET SESSION autocommit = 0;
+
+-- Modify global variable (all new connections, until restart)
+SET GLOBAL max_connections = 200;
+SET GLOBAL slow_query_log = 'ON';
+SET GLOBAL long_query_time = 2;       -- log queries > 2 seconds
+
+-- Check current SQL mode
+SELECT @@sql_mode;
+SELECT @@GLOBAL.sql_mode;
+SELECT @@SESSION.sql_mode;
+
+-- SQL mode — affects strictness
+-- STRICT_TRANS_TABLES: error on bad data (recommended)
+-- ONLY_FULL_GROUP_BY: enforce GROUP BY rules
+-- NO_ZERO_DATE: disallow '0000-00-00' as date
+SET sql_mode = 'STRICT_TRANS_TABLES,ONLY_FULL_GROUP_BY,NO_ZERO_DATE';
+
+-- Check server status (runtime counters)
+SHOW GLOBAL STATUS LIKE 'Threads_connected';
+SHOW GLOBAL STATUS LIKE 'Slow_queries';
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_read_requests';
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_reads';  -- cache misses
+
+-- Buffer pool hit rate (should be > 99%)
+SELECT 
+    ROUND(
+        (SELECT VARIABLE_VALUE FROM performance_schema.global_status WHERE VARIABLE_NAME = 'Innodb_buffer_pool_read_requests')
+        /
+        (
+            (SELECT VARIABLE_VALUE FROM performance_schema.global_status WHERE VARIABLE_NAME = 'Innodb_buffer_pool_read_requests')
+            +
+            (SELECT VARIABLE_VALUE FROM performance_schema.global_status WHERE VARIABLE_NAME = 'Innodb_buffer_pool_reads')
+        ) * 100
+    , 2) AS buffer_pool_hit_rate_pct;
+
+-- Process list (running queries)
+SHOW FULL PROCESSLIST;
+KILL 1234;  -- kill a specific process/query
+
+-- Check table sizes
+SELECT 
+    table_name,
+    ROUND(data_length / 1024 / 1024, 2)  AS data_mb,
+    ROUND(index_length / 1024 / 1024, 2) AS index_mb,
+    ROUND((data_length + index_length) / 1024 / 1024, 2) AS total_mb,
+    table_rows
+FROM information_schema.tables
+WHERE table_schema = 'sales_db'
+ORDER BY (data_length + index_length) DESC;
+```
+
+### ⚡ Recall
+| Variable | What to know |
+|---------|-------------|
+| `innodb_buffer_pool_size` | Set to 70-80% of RAM — most important InnoDB setting |
+| `max_connections` | Max simultaneous client connections |
+| `slow_query_log` + `long_query_time` | Identify slow queries |
+| `sql_mode` | Controls strictness — always use STRICT |
+| `autocommit` | Default ON — each statement is its own transaction |
+| `group_concat_max_len` | Increase for GROUP_CONCAT on long strings |
+
+### 🎯 Interview Q&A
+
+> **Q: What is `innodb_buffer_pool_size` and why is it the most important MySQL setting?**  
+> **A:** The **InnoDB buffer pool** is the main memory cache where InnoDB stores frequently accessed data pages and index pages. When MySQL needs data, it checks the buffer pool first — a "hit" returns data from RAM (fast); a "miss" reads from disk (slow). Setting this to 70–80% of available RAM means most queries are served from memory. A properly sized buffer pool reduces disk I/O dramatically — the difference between a query taking 0.1ms (from RAM) vs 50ms (from disk) is enormous. Monitoring `Innodb_buffer_pool_reads` (misses) vs `Innodb_buffer_pool_read_requests` (total) gives the hit rate; aim for >99%.
+
+> **Q: What is `ONLY_FULL_GROUP_BY` SQL mode and why does it matter?**  
+> **A:** `ONLY_FULL_GROUP_BY` enforces the ANSI SQL standard for GROUP BY — every column in SELECT must either appear in GROUP BY or be wrapped in an aggregate function. Without this mode (older MySQL default), you could SELECT non-aggregated columns not in GROUP BY, and MySQL would return an indeterminate value from an arbitrary row in the group — a silent source of bugs. MySQL 5.7+ enables this mode by default. If a legacy query breaks with this mode, it likely had a latent bug. Fix by adding the column to GROUP BY, using ANY_VALUE(), or wrapping in an aggregate.
+
+---
+
+## 42. Common Interview Query Challenges
+
+### Concept
+These are the most frequently asked SQL coding questions in technical interviews. Master these patterns and you can solve the vast majority of interview problems.
+
+### Code
+
+#### 1. Find the Nth Highest Salary
+```sql
+-- Method 1: Window function (best)
+SELECT salary
+FROM (
+    SELECT DISTINCT salary,
+           DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+    FROM employees
+) ranked
+WHERE rnk = 2;   -- change 2 to N
+
+-- Method 2: Subquery
+SELECT MAX(salary) FROM employees
+WHERE salary < (SELECT MAX(salary) FROM employees);
+
+-- Method 3: LIMIT/OFFSET
+SELECT DISTINCT salary FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 1;  -- OFFSET N-1
+```
+
+#### 2. Find Duplicate Records
+```sql
+-- Find emails that appear more than once
+SELECT email, COUNT(*) AS occurrences
+FROM employees
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+-- Get full rows of duplicates
+SELECT * FROM employees
+WHERE email IN (
+    SELECT email FROM employees
+    GROUP BY email HAVING COUNT(*) > 1
+)
+ORDER BY email;
+
+-- Delete duplicates, keep the lowest emp_id
+DELETE FROM employees
+WHERE emp_id NOT IN (
+    SELECT MIN(emp_id)
+    FROM employees
+    GROUP BY email
+);
+```
+
+#### 3. Running Total / Cumulative Sum
+```sql
+SELECT 
+    order_date,
+    amount,
+    SUM(amount) OVER (ORDER BY order_date 
+                      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total
+FROM orders;
+```
+
+#### 4. Employees Who Earn More Than Their Manager
+```sql
+SELECT e.first_name AS employee, e.salary AS emp_salary,
+       m.first_name AS manager,  m.salary AS mgr_salary
+FROM employees e
+JOIN employees m ON e.manager_id = m.emp_id
+WHERE e.salary > m.salary;
+```
+
+#### 5. Department With the Highest Average Salary
+```sql
+SELECT dept_name, avg_salary
+FROM (
+    SELECT d.dept_name, AVG(e.salary) AS avg_salary,
+           RANK() OVER (ORDER BY AVG(e.salary) DESC) AS rnk
+    FROM employees e
+    JOIN departments d ON e.dept_id = d.dept_id
+    GROUP BY d.dept_name
+) t
+WHERE rnk = 1;
+```
+
+#### 6. Customers Who Placed Orders Every Month
+```sql
+SELECT customer_id
+FROM orders
+WHERE order_date >= '2024-01-01' AND order_date < '2025-01-01'
+GROUP BY customer_id
+HAVING COUNT(DISTINCT DATE_FORMAT(order_date, '%Y-%m')) = 12;
+```
+
+#### 7. Consecutive Login Days (Streak)
+```sql
+WITH daily_logins AS (
+    SELECT user_id, DATE(login_time) AS login_date
+    FROM logins
+    GROUP BY user_id, DATE(login_time)
+),
+with_prev AS (
+    SELECT user_id, login_date,
+           LAG(login_date) OVER (PARTITION BY user_id ORDER BY login_date) AS prev_date
+    FROM daily_logins
+),
+streaks AS (
+    SELECT user_id, login_date,
+           SUM(CASE WHEN DATEDIFF(login_date, prev_date) = 1 THEN 0 ELSE 1 END)
+               OVER (PARTITION BY user_id ORDER BY login_date) AS streak_group
+    FROM with_prev
+)
+SELECT user_id, streak_group, COUNT(*) AS streak_length,
+       MIN(login_date) AS streak_start, MAX(login_date) AS streak_end
+FROM streaks
+GROUP BY user_id, streak_group
+ORDER BY streak_length DESC;
+```
+
+#### 8. Pivot: Count Employees Per Department Per Gender
+```sql
+SELECT 
+    dept_name,
+    COUNT(CASE WHEN gender = 'M' THEN 1 END) AS male_count,
+    COUNT(CASE WHEN gender = 'F' THEN 1 END) AS female_count,
+    COUNT(*) AS total
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id
+GROUP BY dept_name
+ORDER BY dept_name;
+```
+
+#### 9. First Purchase Per Customer
+```sql
+-- Method 1: Window function
+SELECT customer_id, order_id, order_date, total
+FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) AS rn
+    FROM orders
+) t
+WHERE rn = 1;
+
+-- Method 2: Correlated subquery
+SELECT o.*
+FROM orders o
+WHERE order_date = (
+    SELECT MIN(order_date) FROM orders WHERE customer_id = o.customer_id
+);
+```
+
+#### 10. Gap and Island — Find Date Ranges of Continuous Activity
+```sql
+-- Assign group ID to each continuous block
+WITH ranked AS (
+    SELECT user_id, active_date,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY active_date)
+               - DENSE_RANK() OVER (PARTITION BY user_id ORDER BY active_date) AS grp
+    FROM user_activity
+),
+-- Each unique grp value represents a continuous island
+islands AS (
+    SELECT user_id, MIN(active_date) AS start_date, MAX(active_date) AS end_date,
+           COUNT(*) AS days_active
+    FROM ranked
+    GROUP BY user_id, grp
+)
+SELECT * FROM islands ORDER BY user_id, start_date;
+```
+
+#### 11. Transactions: Transfer Money Safely
+```sql
+DELIMITER //
+CREATE PROCEDURE transfer_funds(
+    IN from_id INT, IN to_id INT, IN amount DECIMAL(10,2)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Transfer failed';
+    END;
+    
+    START TRANSACTION;
+    
+    -- Lock rows in consistent order to prevent deadlock
+    SELECT balance INTO @bal FROM accounts WHERE id = from_id FOR UPDATE;
+    
+    IF @bal < amount THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient funds';
+    END IF;
+    
+    UPDATE accounts SET balance = balance - amount WHERE id = from_id;
+    UPDATE accounts SET balance = balance + amount WHERE id = to_id;
+    
+    INSERT INTO transfer_log (from_id, to_id, amount, tx_time)
+    VALUES (from_id, to_id, amount, NOW());
+    
+    COMMIT;
+    SELECT 'Transfer successful' AS result;
+END //
+DELIMITER ;
+```
+
+#### 12. Find Employees in All Departments (Relational Division)
+```sql
+-- Employees who have worked in EVERY department
+SELECT employee_id
+FROM work_history
+GROUP BY employee_id
+HAVING COUNT(DISTINCT dept_id) = (SELECT COUNT(*) FROM departments);
+```
+
+### ⚡ Recall — Pattern Library
+| Problem | Key Technique |
+|---------|--------------|
+| Nth highest | `DENSE_RANK() OVER (ORDER BY col DESC)` |
+| Duplicates | `GROUP BY + HAVING COUNT(*) > 1` |
+| Running total | `SUM() OVER (ORDER BY ... ROWS UNBOUNDED)` |
+| Streak/consecutive | `ROW_NUMBER - DENSE_RANK trick` or `LAG + DATEDIFF` |
+| First per group | `ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...)` |
+| Manager compare | `SELF JOIN` |
+| Pivot | `SUM(CASE WHEN cat='X' THEN val ELSE 0 END)` |
+| Customers in all groups | `GROUP BY + HAVING COUNT(DISTINCT) = total` |
+
+### 🎯 Interview Q&A
+
+> **Q: Walk me through how you'd find duplicate rows in a table.**  
+> **A:** Step 1 — identify the duplication key (which columns define a "duplicate" — usually email, or a combination of columns). Step 2 — `GROUP BY` those columns with `HAVING COUNT(*) > 1` to find the duplicated values. Step 3 — if you need the full rows, use `IN` or a self-join on the duplicated key to retrieve them. Step 4 — to delete duplicates keeping the "best" row, delete where the row ID is NOT IN `(SELECT MIN/MAX(id) FROM ... GROUP BY duplicate_key)`. Always wrap in a transaction and verify the SELECT before running the DELETE.
+
+> **Q: What is the ROW_NUMBER minus DENSE_RANK trick for finding consecutive sequences?**  
+> **A:** It's an elegant technique for the **gaps-and-islands** problem. `ROW_NUMBER() OVER (PARTITION BY user ORDER BY date)` assigns sequential integers. `DATE - ROW_NUMBER` (treating date as an integer) produces the same constant value for consecutive days, but a different value when there's a gap — because both the date and the row number increase by 1 for consecutive days, so the difference stays the same. Non-consecutive dates cause the date to "jump" while the row number only increments by 1, changing the difference. Grouping by this difference gives you each "island" of consecutive dates.
