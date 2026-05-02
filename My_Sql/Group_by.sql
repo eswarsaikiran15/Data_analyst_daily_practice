@@ -38,6 +38,7 @@ select count(rollno) from student;
 
 -- The GROUP BY clause is used to group rows 
 -- that have the same values into summary rows.
+-- Group rows based on one or more columns, then apply aggregate functions on each group.
 
 -- It collects data from multiple records 
 -- and groups the result based on one or more columns.
