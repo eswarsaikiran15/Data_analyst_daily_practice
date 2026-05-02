@@ -195,7 +195,3 @@ WHERE grade IS NOT NULL;
 * Ignoring operator precedence (`AND` vs `OR`)
 
 
-
-If you want, next step should be:
-👉 **JOIN + WHERE + GROUP BY combined README** — that’s where beginners usually fail.
-```
