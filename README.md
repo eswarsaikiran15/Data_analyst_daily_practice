@@ -1,266 +1,300 @@
-# 📊 Data Analyst Daily Practice
+# Data Analyst Daily Practice 📊
 
-![Python](https://img.shields.io/badge/python-v3.8+-blue)
-![Jupyter](https://img.shields.io/badge/jupyter-notebook-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-active-brightgreen)
+A comprehensive learning repository for aspiring data analysts containing notes, tutorials, cheat sheets, and practical examples covering SQL, Python Data Stack, Excel, Power BI, and Computer Science Fundamentals.
 
-A structured, professional learning repository for becoming a proficient data analyst through daily practice and hands-on projects. Comprehensive preparation for data analyst interviews with CS fundamentals and GitHub essentials.
+## Repository Overview
 
-## 🎯 About This Repository
+This repository is organized into multiple learning domains with both theoretical knowledge (markdown notes, PDFs) and practical implementations (SQL queries, Jupyter Notebooks).
 
-This repository is a comprehensive learning resource designed to guide you from beginner to intermediate data analyst. It combines theory with practical examples, real-world projects, and best practices. Perfect for interview preparation and professional development.
+**Language Composition:** 100% Jupyter Notebooks
 
-**Current Status:** 🚀 Active development  
-**Last Updated:** 2026-05-02
+---
 
-## 📚 What You'll Learn
+## 📁 Directory Structure
 
-### Phase 1: Foundations 🔧
-- **NumPy Fundamentals** - Master numerical computing
-  - Array creation and manipulation
-  - Mathematical operations
-  - Statistical functions
-  - Broadcasting and vectorization
+### 1. **CS_FUNDEMENTALS/** - Computer Science Fundamentals
+Essential CS concepts for data professionals:
 
-### Phase 2: Data Manipulation 📊
-- **Pandas Essentials** - Transform raw data into insights
-  - DataFrames and Series
-  - Data cleaning and preprocessing
-  - GroupBy and aggregation
-  - Merging and joining datasets
+- **Computer Networking Notes for Tech Placements.pdf** - Networking fundamentals for interviews
+- **DBMS_Notes.pdf** - Database Management Systems concepts
+- **Operating System Notes.pdf** - OS core concepts
+- **SQL (notes) by APNA COLLEGE.pdf** - Comprehensive SQL notes
+- **SQL Notes by Apna College.pdf** - Alternative SQL reference
+- **git-cheat-sheet-education.pdf** - Git version control guide
 
-### Phase 3: Data Visualization 📈
-- **Matplotlib & Seaborn** - Tell stories with data
-  - Creating various plot types
-  - Statistical visualizations
-  - Publication-quality graphics
-  - Best practices for clarity
+### 2. **EXCEL/** - Microsoft Excel Tutorials
+Excel skills for data analysts:
 
-### Phase 4: Real-World Projects 🎯
-- **Applied Analytics** - Solve real business problems
-  - Sales data analysis
-  - Customer segmentation
-  - Time series forecasting
-  - Data cleaning pipelines
+- **COMPLETE_EXCEL.md** - Comprehensive Excel learning guide with functions, formulas, and best practices
 
-### Phase 5: CS Fundamentals 💻
-Essential computer science concepts for data analysts and technical interviews:
+### 3. **My_Sql/** - MySQL Database Tutorials
+Practical SQL implementation with 18 files covering:
 
-- **Computer Networks (CN)** 🌐
-  - Network basics and OSI model
-  - TCP/IP protocols
-  - HTTP/HTTPS fundamentals
-  - DNS and network security
-  - Networking for data transfer
+**Core Concepts:**
+- `Basic_example.sql` - Getting started with SQL
+- `primary_key_usage.sql` - Primary key implementation
+- `unique_constraint.sql` - Unique constraints
+- `using_default.sql` - Default values
+- `using_foreign_key.sql` - Foreign key relationships
+- `Cascading_in_fk.sql` - Cascading delete/update
 
-- **Operating Systems (OS)** ⚙️
-  - Process and thread management
-  - Memory management
-  - File systems
-  - System calls and kernel concepts
-  - Performance optimization
+**SQL Operations:**
+- `using_where.sql` - WHERE clause fundamentals
+- `order_by.sql` - Sorting results
+- `limit_clause.sql` - Limiting result sets
+- `Group_by.sql` - Grouping and aggregation
+- `having_clause.sql` - HAVING clause for filtered groups
+- `operators.sql` - SQL operators reference
+- `using_operators_in_where.md` - Operator usage guide
 
-- **Database Management Systems (DBMS)** 🗄️
-  - SQL fundamentals and queries
-  - Database design and normalization
-  - Indexing and optimization
-  - Transactions and ACID properties
-  - Data integrity and constraints
+**Data Manipulation:**
+- `delete.sql` - DELETE statement
+- `update.sql` - UPDATE statement
+- `truncate_delete_drop_practice.sql` - Comparison of delete operations
+- `joins_concepts.sql` - JOIN types and concepts
+- `union.sql` - UNION operations
 
-### Phase 6: Git & GitHub 🚀
-- **Version Control Essentials** - Master collaborative development
-  - Git basics and commands
-  - Branching and merging strategies
-  - Pull requests and code reviews
-  - GitHub workflow and collaboration
-  - Best practices for team projects
+**Advanced Topics:**
+- `alter_table_practice.sql` - Altering table structures
+- `practice_upto_delete_command.sql` - Comprehensive practice examples
+- `sql_aggregate_functions.md` - Aggregate functions reference
 
+**Reference Guides:**
+- `Complete_My_Sql_Notes.md` - Complete MySQL tutorial and reference
+- `general_sql_query_oerder.sql` - Query execution order
 
-## 🚀 Quick Start
+### 4. **Power_BI/** - Power BI Analytics
+Business Intelligence tools and techniques:
 
-### Prerequisites
-- Python 3.8 or higher
-- pip or Conda
-- Git
-- Text editor or IDE
+- **Complete_Power_BI_Notes.md** - Comprehensive Power BI learning guide covering data modeling, DAX, visualizations, and best practices
 
-### Installation
+### 5. **python_data_stack/** - Python Data Analysis Libraries
+Extensive Jupyter Notebooks and markdown guides for Python data tools:
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/eswarsaikiran15/Data_analyst_daily_practice.git
-cd Data_analyst_daily_practice
+**NumPy - Numerical Computing:**
+- `Numpy.md` - NumPy comprehensive guide
+- `Numpy_data_analysis_use.md` - Practical NumPy applications
+- `complete_Numpy_tutotial.ipynb` - Complete NumPy tutorial notebook
+
+**Pandas - Data Manipulation:**
+- `Pandas.md` - Pandas comprehensive guide
+- `Pandas_data_analysis_use.md` - Practical Pandas applications
+- `complete_Pandas.ipynb` - Complete Pandas tutorial notebook
+
+**Matplotlib - Data Visualization:**
+- `Matplotlib.md` - Matplotlib comprehensive guide
+- `matplotlib/` subdirectory with specialized plot tutorials:
+  - `BAR PLOT.ipynb` - Bar chart implementations
+  - `LINE PLOT.ipynb` - Line plot techniques
+  - `SCATTER PLOT.ipynb` - Scatter plot examples
+  - `PIE PLOT.ipynb` - Pie chart visualizations
+  - `HIST PLOT.ipynb` - Histogram plots
+  - `IMSHOW.ipynb` - Image display techniques
+  - `SUBPLOT.ipynb` - Multiple plot layouts
+  - `IRIS.csv` - Sample dataset (Iris flowers)
+  - `SUPERMARKET.csv` - Sample dataset (Supermarket transactions)
+
+**Seaborn - Statistical Visualization:**
+- `seaborn.md` - Seaborn comprehensive guide
+- `Seaborn .ipynb` - Seaborn tutorial notebook
+
+### 6. **cheatsheets/** - Quick Reference Guides
+Collection of 9 quick reference PDFs for rapid skill lookup:
+
+- **DataLemur SQL Cheat Sheet (1).pdf** - SQL syntax quick reference
+- **Data_Storytelling_Cheat_Sheet.pdf** - Data visualization and storytelling
+- **Excel_Cheat_Sheet.pdf** - Excel functions and shortcuts
+- **ML+Cheat+Sheet_2.pdf** - Machine Learning concepts
+- **Power+BI_Cheat+Sheet.pdf** - Power BI quick reference
+- **cheatsheet.pdf** - General data analysis cheat sheet
+- **python-basics-cheat-sheet-v4.pdf** - Python syntax and functions
+- **python-cheat-sheets.pdf** - Extended Python reference
+- **sql-basics-cheat-sheet-a4.pdf** - SQL basics quick reference
+- **statacheatsheets.pdf** - Statistical analysis reference
+
+### 7. **docs/** - Documentation
+Supporting documentation files:
+
+- **LEARNING_PATH.md** - Recommended learning progression
+- **RESOURCES.md** - External resources and references
+- **SETUP.md** - Environment setup and installation guide
+
+---
+
+## 🛠️ Requirements
+
+The project requires the following Python packages (see `requirements.txt`):
+
+```
+pandas>=1.3.0       # Data manipulation and analysis
+numpy>=1.21.0       # Numerical computing
+matplotlib>=3.4.0   # Data visualization
+seaborn>=0.11.0     # Statistical data visualization
+jupyter>=1.0.0      # Interactive notebooks
+ipython>=7.0.0      # Enhanced Python shell
 ```
 
-2. **Create a virtual environment** (recommended)
-```bash
-python -m venv venv
+---
 
-# Activate on Windows:
-venv\Scripts\activate
+## 📚 Learning Topics Covered
 
-# Activate on macOS/Linux:
-source venv/bin/activate
-```
+### Data Management & Querying
+- SQL fundamentals and advanced queries
+- MySQL database design and operations
+- Database relationships and constraints
+- Data aggregation and analysis
 
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+### Data Analysis with Python
+- NumPy for numerical operations
+- Pandas for data manipulation
+- Data cleaning and transformation
+- Data exploration and analysis
 
-4. **Start Jupyter Notebook**
-```bash
-jupyter notebook
-```
+### Data Visualization
+- Matplotlib for basic and advanced plots
+- Seaborn for statistical visualization
+- Chart types and best practices
+- Data storytelling techniques
 
-5. **Begin learning**
-   - Open `docs/LEARNING_PATH.md` for the structured curriculum
-   - Start with `01_foundations/01_numpy_basics.ipynb`
+### Business Intelligence
+- Power BI dashboard creation
+- Data modeling and DAX
+- Interactive visualizations
 
-## 📖 Learning Path
+### Spreadsheet Skills
+- Excel formulas and functions
+- Data organization
+- Analysis techniques
 
-Follow this recommended progression:
+### Fundamentals
+- Computer networking
+- Database management systems
+- Operating systems
+- Version control with Git
 
-1. **Week 1-2:** Phase 1 - NumPy Fundamentals
-2. **Week 3-4:** Phase 2 - Pandas Essentials  
-3. **Week 5-6:** Phase 3 - Data Visualization
-4. **Week 7-8:** Phase 4 - Real-World Projects
-5. **Week 9-10:** Phase 5 - CS Fundamentals (CN, OS, DBMS)
-6. **Week 11-12:** Phase 6 - Git & GitHub + Interview Preparation
+---
 
-See `docs/LEARNING_PATH.md` for detailed curriculum.
+## 🎯 Getting Started
 
-## 💡 How to Use This Repository
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/eswarsaikiran15/Data_analyst_daily_practice.git
+   cd Data_analyst_daily_practice
+   ```
 
-### For Beginners
-1. Start with the SETUP.md guide
-2. Follow the learning path sequentially
-3. Code along with every notebook
-4. Complete practice exercises
-5. Review key concepts regularly
+2. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### For Intermediate Learners
-1. Skip to relevant phases
-2. Focus on real-world projects
-3. Extend examples with your own data
-4. Build custom analyses
-5. Contribute improvements
+3. **Start Learning:**
+   - Begin with `docs/LEARNING_PATH.md` for recommended progression
+   - Explore relevant `.md` files for theoretical understanding
+   - Work through `.ipynb` notebooks for hands-on practice
+   - Reference `.pdf` files for quick lookup
 
-### For Interview Preparation
-1. Review Phase 5 - CS Fundamentals (CN, OS, DBMS)
-2. Practice with real-world projects (Phase 4)
-3. Master Git & GitHub workflows (Phase 6)
-4. Build a portfolio on GitHub
-5. Solve data analysis problems
+4. **Practice SQL:**
+   - Review SQL files in `My_Sql/` directory
+   - Execute queries in your MySQL database
+   - Understand concepts before moving to next topic
 
-### For Instructors
-- Use this as a teaching resource
-- Adapt materials for your students
-- Contribute improvements via pull requests
-- Share in your classrooms
+---
 
-## 📚 Key Resources
+## 📖 File Organization
 
-### Internal Documentation
-- 📖 [Learning Path](docs/LEARNING_PATH.md) - Structured curriculum
-- 🔧 [Setup Guide](docs/SETUP.md) - Installation instructions
-- 📚 [Resources](docs/RESOURCES.md) - External learning materials
-- 📖 [Glossary](docs/GLOSSARY.md) - Key terms explained
+| Type | Purpose | Location |
+|------|---------|----------|
+| **Notebooks (.ipynb)** | Interactive Python tutorials with outputs | `python_data_stack/`, `python_data_stack/matplotlib/` |
+| **Markdown (.md)** | Detailed learning guides and notes | All subdirectories |
+| **SQL Scripts (.sql)** | Database operations and practice queries | `My_Sql/` |
+| **PDF Files** | Reference materials and cheat sheets | `CS_FUNDEMENTALS/`, `cheatsheets/` |
+| **Data Files (.csv)** | Sample datasets for practice | `python_data_stack/matplotlib/` |
 
-### CS Fundamentals Resources
-- **Computer Networks:** [GeeksforGeeks CN](https://www.geeksforgeeks.org/computer-network-tutorials/)
-- **Operating Systems:** [GeeksforGeeks OS](https://www.geeksforgeeks.org/operating-systems/)
-- **DBMS:** [GeeksforGeeks DBMS](https://www.geeksforgeeks.org/dbms/)
+---
 
-### Data Analysis Resources
-- [NumPy Documentation](https://numpy.org/doc/)
-- [Pandas Documentation](https://pandas.pydata.org/docs/)
-- [Matplotlib Documentation](https://matplotlib.org/)
-- [Seaborn Documentation](https://seaborn.pydata.org/)
-- [Kaggle Courses](https://www.kaggle.com/learn)
+## 🎓 Recommended Learning Path
 
-### Git & GitHub Resources
-- [GitHub Learning Lab](https://lab.github.com/)
-- [Git Official Documentation](https://git-scm.com/doc)
-- [GitHub Docs](https://docs.github.com/)
+1. **Foundations** (CS_FUNDEMENTALS/)
+   - Start with CS fundamentals and Git basics
+   - Understand database concepts
 
-## 🎓 Learning Outcomes
+2. **SQL Mastery** (My_Sql/)
+   - Progress from basic queries to advanced operations
+   - Practice with provided examples
 
-After completing this repository, you will be able to:
+3. **Python Stack** (python_data_stack/)
+   - Master NumPy for numerical operations
+   - Learn Pandas for data manipulation
+   - Create visualizations with Matplotlib and Seaborn
 
-✅ Perform numerical computations with NumPy  
-✅ Manipulate and clean data with Pandas  
-✅ Create insightful visualizations  
-✅ Analyze real-world datasets  
-✅ Build data analysis pipelines  
-✅ Present findings effectively  
-✅ Solve practical business problems  
-✅ Understand Computer Networks, OS, and DBMS concepts  
-✅ Use Git and GitHub professionally  
-✅ Ace data analyst technical interviews  
+4. **Tools & Platforms**
+   - Excel for spreadsheet analysis
+   - Power BI for business intelligence
+
+5. **Quick Reference** (cheatsheets/)
+   - Use during interviews and on-the-job
+
+---
+
+## 📝 File Statistics
+
+- **Total Jupyter Notebooks:** 10+
+- **SQL Query Files:** 18+
+- **Markdown Guides:** 15+
+- **PDF Reference Materials:** 16+
+- **Sample Datasets:** 2
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Feel free to:
+- Add more examples and tutorials
+- Fix any errors or typos
+- Suggest improvements to existing content
+- Share your own learning notes
 
-### Ways to Contribute
-- 📝 Add new learning materials
-- 🐛 Report bugs or issues
-- 💡 Suggest improvements
-- 📊 Share real-world projects
-- 📚 Add datasets
-- 🌐 Improve documentation
-
-## 📋 Project Status
-
-| Phase | Status | Progress |
-|-------|--------|----------|
-| Phase 1: Foundations | ✅ Complete | 100% |
-| Phase 2: Data Manipulation | ⏳ In Progress | 60% |
-| Phase 3: Visualization | ⏳ In Progress | 40% |
-| Phase 4: Real Projects | 📋 Planned | 20% |
-| Phase 5: CS Fundamentals (CN, OS, DBMS) | ⏳ In Progress | 70% |
-| Phase 6: Git & GitHub | ⏳ In Progress | 50% |
-
-## 📞 Get Involved
-
-- 📧 **Questions?** Open an issue
-- 💬 **Discussions?** Start a discussion
-- 🤝 **Contribute?** See CONTRIBUTING.md
-- ⭐ **Like this?** Give it a star!
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Eswar Sai Kiran**
-- GitHub: [@eswarsaikiran15](https://github.com/eswarsaikiran15)
-- Learning Journey: Data Analyst + CS Fundamentals + Interview Prep
+Please see `CONTRIBUTING.md` for detailed guidelines.
 
 ---
 
-## 🎉 Acknowledgments
+## 📄 License
 
-- Built with ❤️ for the data science community
-- Inspired by best practices in data education
-- Powered by amazing open-source libraries
-- CS fundamentals essential for technical interviews
-
-## 📊 Repository Stats
-
-- 📦 **Repositories:** 1
-- 📝 **Notebooks:** 6+
-- 📚 **Documentation Files:** 15+
-- 🎯 **Real-world Projects:** 4+
-- 📖 **CS Fundamentals Notes:** CN, OS, DBMS
-- 🚀 **GitHub Resources:** Interview-focused
-- 👥 **Contributors:** Welcome!
+This repository is licensed under the MIT License. See the `LICENSE` file for details.
 
 ---
 
-**Start your data analysis journey with full CS fundamentals preparation today! 🚀**
+## 📞 Contact & Support
 
-*Last updated: 2026-05-02*
+- **Repository:** [eswarsaikiran15/Data_analyst_daily_practice](https://github.com/eswarsaikiran15/Data_analyst_daily_practice)
+- **Issues:** Use GitHub Issues for questions or problems
+- **Documentation:** See `docs/` folder for setup and resources
+
+---
+
+## ✨ Key Features
+
+✅ **Comprehensive Content** - From fundamentals to advanced topics
+✅ **Hands-on Practice** - Jupyter notebooks with executable code
+✅ **Multiple Formats** - Markdown guides, PDF references, SQL scripts
+✅ **Sample Data** - CSV files for practicing with real-world datasets
+✅ **Quick References** - Cheat sheets for rapid lookup
+✅ **Well-Organized** - Logical folder structure for easy navigation
+✅ **Beginner-Friendly** - Suitable for learners at all levels
+
+---
+
+## 🎯 Next Steps
+
+- Start with your area of interest
+- Review the corresponding guide in that directory
+- Practice with provided examples
+- Refer to cheat sheets for quick lookups
+- Check `docs/LEARNING_PATH.md` for a structured progression
+
+Happy learning! 📊📈📉
+
+---
+
+**Last Updated:** 2026-05-03
+**Maintainer:** [@eswarsaikiran15](https://github.com/eswarsaikiran15)
