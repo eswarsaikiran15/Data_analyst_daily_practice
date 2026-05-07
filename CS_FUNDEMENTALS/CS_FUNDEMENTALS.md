@@ -3,7 +3,6 @@
 > **Format:** Concept → Definition → Interview Q&A with detailed answers  
 > **Target:** FAANG, product companies, technical interviews at all levels
 
----
 
 ## 📋 Table of Contents
 
