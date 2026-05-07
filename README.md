@@ -134,8 +134,6 @@ jupyter>=1.0.0      # Interactive notebooks
 ipython>=7.0.0      # Enhanced Python shell
 ```
 
----
-
 ## 📚 Learning Topics Covered
 
 ### Data Management & Querying
